@@ -38,8 +38,8 @@ function AppInner() {
           <Route path="/start"                        element={<ConsultPublic />} />
           <Route path="/consult"                      element={<ConsultPublic />} />
           <Route path="/admin/consult"                element={<ConsultAdmin />} />
-          <Route path="/admin/consult/:id"            element={<ConsultDetail />} />
           <Route path="/admin/consult/answers"        element={<ConsultAnswers />} />
+          <Route path="/admin/consult/:id"            element={<ConsultDetail />} />
           <Route path="*"                             element={<Navigate to="/" replace />} />
         </Routes>
         {toast && (
