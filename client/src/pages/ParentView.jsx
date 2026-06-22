@@ -412,7 +412,7 @@ export default function ParentView() {
                     <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>📝</span>
                     <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>단어 테스트</span>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#2B5CA0', lineHeight: 1.3 }}>
-                      {latest.test_result || '—'}
+                      {latest.test_result ? latest.test_result.split('\n').map((line, i) => <div key={i}>{line}</div>) : '—'}
                     </div>
                   </div>
                   {/* 태도 */}

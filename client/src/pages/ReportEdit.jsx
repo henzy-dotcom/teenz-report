@@ -359,7 +359,7 @@ export default function ReportEdit() {
               </div>
               <div>
                 <label className="label">단어 테스트</label>
-                <input className="input" value={form.test_result} onChange={e => setForm(p => ({ ...p, test_result: e.target.value }))} placeholder="예: 단어 테스트 92점 (23/25)" />
+                <textarea className="input" value={form.test_result} onChange={e => setForm(p => ({ ...p, test_result: e.target.value }))} placeholder={"예: 1차 92점\n2차 97점\n3차 88점"} style={{ minHeight: 72 }} />
               </div>
               <div>
                 <label className="label">보완할 점</label>
