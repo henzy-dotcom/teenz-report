@@ -28,7 +28,9 @@ const PHOTO_LABEL = {
 /* ─── PDF 보기 패널 ─── */
 function PDFPanel({ pdf }) {
   const [open, setOpen] = useState(false);
-  const url = `/uploads/pdfs/${pdf.filename}`;
+  const rawUrl = `/uploads/pdfs/${pdf.filename}`;
+  const absoluteUrl = `${window.location.origin}${rawUrl}`;
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
   const label = PDF_LABEL[pdf.pdf_type] || pdf.pdf_type;
 
   return (
@@ -80,7 +82,7 @@ function PDFPanel({ pdf }) {
           marginBottom: 0,
         }}>
           <iframe
-            src={url}
+            src={viewerUrl}
             style={{ width: '100%', height: '72vh', border: 'none', display: 'block' }}
             title={label}
           />
@@ -91,19 +93,12 @@ function PDFPanel({ pdf }) {
             display: 'flex',
             gap: 8,
           }}>
-            <a href={url} target="_blank" rel="noopener noreferrer"
+            <a href={viewerUrl} target="_blank" rel="noopener noreferrer"
               style={{
                 flex: 1, padding: '11px', background: '#2B3660', color: 'white',
                 borderRadius: 10, textAlign: 'center', fontSize: 13, fontWeight: 600, display: 'block',
               }}>
               새 탭에서 크게 보기 ↗
-            </a>
-            <a href={url} download={pdf.original_name || `${label}.pdf`}
-              style={{
-                padding: '11px 16px', background: '#F0EBE3', color: '#555',
-                borderRadius: 10, fontSize: 13, display: 'block',
-              }}>
-              저장
             </a>
           </div>
         </div>
