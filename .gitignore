@@ -1,0 +1,11 @@
+node_modules/
+client/node_modules/
+client/dist/
+db/teenz.db
+uploads/pdfs/*
+uploads/photos/*
+!uploads/pdfs/.gitkeep
+!uploads/photos/.gitkeep
+.env
+.env.local
+.DS_Store

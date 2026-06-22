@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["npm install", "cd client && npm install && npm run build"]
+
+[start]
+cmd = "node db/setup.js && node server.js"
