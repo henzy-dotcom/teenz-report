@@ -19,6 +19,11 @@ const PDF_LABEL = {
   weekly2: '2주차 AI 리포트',
   monthly: '월간 AI 리포트',
 };
+const PDF_ICON = {
+  weekly1: '/쿼카얼굴3.png',
+  weekly2: '/쿼카얼굴4.png',
+  monthly: '/쿼카얼굴5.png',
+};
 const PDF_ORDER = ['weekly1', 'weekly2', 'monthly'];
 const PHOTO_LABEL = {
   homework: { text: '숙제',      emoji: '📝' },
@@ -32,6 +37,7 @@ function PDFPanel({ pdf }) {
   const rawUrl = `/uploads/pdfs/${pdf.filename}`;
   const absoluteUrl = `${window.location.origin}${rawUrl}`;
   const label = PDF_LABEL[pdf.pdf_type] || pdf.pdf_type;
+  const icon = PDF_ICON[pdf.pdf_type] || '/쿼카얼굴3.png';
   const isImage = /\.(jpg|jpeg|png|webp)$/i.test(pdf.filename);
 
   return (
@@ -59,8 +65,10 @@ function PDFPanel({ pdf }) {
             background: open ? 'rgba(126,200,227,0.18)' : '#F0EBE3',
             borderRadius: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, flexShrink: 0,
-          }}>{isImage ? '🖼️' : '📄'}</div>
+            flexShrink: 0, overflow: 'hidden',
+          }}>
+            <img src={icon} alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+          </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 15, color: open ? 'white' : '#2B3660' }}>{label}</div>
             <div style={{ fontSize: 12, color: open ? 'rgba(255,255,255,0.5)' : '#AAA', marginTop: 2 }}>
@@ -401,7 +409,7 @@ export default function ParentView() {
                   </div>
                   {/* 테스트 */}
                   <div style={{ background: '#EEF6FF', border: '1.5px solid #C5DCEF', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
-                    <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>📊</span>
+                    <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>📝</span>
                     <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>단어 테스트</span>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#2B5CA0', lineHeight: 1.3 }}>
                       {latest.test_result || '—'}
