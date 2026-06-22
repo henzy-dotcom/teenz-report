@@ -26,13 +26,13 @@ const PHOTO_LABEL = {
   activity: { text: '학습/활동', emoji: '🎯' },
 };
 
-/* ─── PDF 보기 패널 ─── */
+/* ─── 리포트 보기 패널 ─── */
 function PDFPanel({ pdf }) {
   const [open, setOpen] = useState(false);
   const rawUrl = `/uploads/pdfs/${pdf.filename}`;
   const absoluteUrl = `${window.location.origin}${rawUrl}`;
-  const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(absoluteUrl)}`;
   const label = PDF_LABEL[pdf.pdf_type] || pdf.pdf_type;
+  const isImage = /\.(jpg|jpeg|png|webp)$/i.test(pdf.filename);
 
   return (
     <div style={{ marginBottom: 10 }}>
@@ -60,7 +60,7 @@ function PDFPanel({ pdf }) {
             borderRadius: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 20, flexShrink: 0,
-          }}>📄</div>
+          }}>{isImage ? '🖼️' : '📄'}</div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 15, color: open ? 'white' : '#2B3660' }}>{label}</div>
             <div style={{ fontSize: 12, color: open ? 'rgba(255,255,255,0.5)' : '#AAA', marginTop: 2 }}>
@@ -80,20 +80,22 @@ function PDFPanel({ pdf }) {
           borderRadius: '0 0 12px 12px',
           overflow: 'hidden',
           background: 'white',
-          padding: '14px',
           marginBottom: 0,
         }}>
-          <p style={{ fontSize: 13, color: '#888', marginBottom: 12, lineHeight: 1.6 }}>
-            아래 버튼을 눌러 리포트를 확인하세요.
-          </p>
-          <a href={viewerUrl} target="_blank" rel="noopener noreferrer"
-            style={{
-              display: 'block', padding: '14px', background: '#2B3660', color: 'white',
-              borderRadius: 10, textAlign: 'center', fontSize: 14, fontWeight: 700,
-              textDecoration: 'none',
-            }}>
-            📄 리포트 보기 ↗
-          </a>
+          {isImage ? (
+            <img src={rawUrl} alt={label} style={{ width: '100%', display: 'block' }} />
+          ) : (
+            <div style={{ padding: '14px' }}>
+              <a href={absoluteUrl} target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'block', padding: '14px', background: '#2B3660', color: 'white',
+                  borderRadius: 10, textAlign: 'center', fontSize: 14, fontWeight: 700,
+                  textDecoration: 'none',
+                }}>
+                📄 리포트 보기 ↗
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -288,15 +290,18 @@ export default function ParentView() {
 
       {/* ── 헤더 ── */}
       <div style={{
-        background: '#2B3660',
-        padding: '16px 20px 22px',
+        background: 'linear-gradient(135deg, #1e2a4a 0%, #2B3660 60%, #1a3a5c 100%)',
+        padding: '16px 20px 0',
         position: 'sticky', top: 0, zIndex: 50,
         overflow: 'hidden',
       }}>
-        {/* 마스코트 */}
-        <div style={{ position: 'absolute', bottom: -6, right: 12, opacity: 0.95 }}>
-          <img src="/쿼카얼굴.png" alt="" style={{ width: 72, height: 'auto', display: 'block' }} />
-        </div>
+        {/* 배경 장식 원 */}
+        <div style={{ position: 'absolute', top: -30, right: 80, width: 100, height: 100, borderRadius: '50%', background: 'rgba(126,200,227,0.07)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: 10, right: 30, width: 50, height: 50, borderRadius: '50%', background: 'rgba(126,200,227,0.05)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', pointerEvents: 'none' }} />
+        {/* 가로 구분선 장식 */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, rgba(126,200,227,0.4), transparent)', pointerEvents: 'none' }} />
+
         {/* 로고 + 기간 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -319,29 +324,36 @@ export default function ParentView() {
             </span>
           )}
         </div>
-        {/* 학생명 */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ color: 'white', fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>
-            {student.masked_name}
-          </span>
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
-            {[student.grade, student.class_subject].filter(Boolean).join(' · ')}
-          </span>
-        </div>
-        <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{
-            background: 'rgba(126,200,227,0.15)',
-            border: '1px solid rgba(126,200,227,0.25)',
-            borderRadius: 20, padding: '3px 10px',
-            fontSize: 11, color: 'rgba(255,255,255,0.7)',
-          }}>
-            TEENZ 2주 학습 리포트
-          </span>
-          {student.teacher && (
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-              담당 {student.teacher}
-            </span>
-          )}
+
+        {/* 학생명 + 캐릭터 */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div style={{ paddingBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ color: 'white', fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>
+                {student.masked_name}
+              </span>
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
+                {[student.grade, student.class_subject].filter(Boolean).join(' · ')}
+              </span>
+            </div>
+            <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                background: 'rgba(126,200,227,0.15)',
+                border: '1px solid rgba(126,200,227,0.25)',
+                borderRadius: 20, padding: '3px 10px',
+                fontSize: 11, color: 'rgba(255,255,255,0.7)',
+              }}>
+                학습 리포트
+              </span>
+              {student.teacher && (
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                  담당 {student.teacher}
+                </span>
+              )}
+            </div>
+          </div>
+          {/* 마스코트 - 하단 정렬, 전체 보이게 */}
+          <img src="/쿼카얼굴.png" alt="" style={{ width: 88, height: 'auto', display: 'block', flexShrink: 0 }} />
         </div>
       </div>
 
@@ -373,7 +385,7 @@ export default function ParentView() {
                 boxShadow: '0 2px 10px rgba(43,54,96,0.07)',
               }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#2B3660', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
-                  📊 이번 2주 요약
+                  📊 이번 달 요약
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                   {/* 숙제 */}
@@ -591,13 +603,13 @@ export default function ParentView() {
               편하게 연락 주세요. 😊
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="tel:" style={{
+              <a href="tel:01020010590" style={{
                 padding: '17px', background: '#2B3660', color: 'white',
                 borderRadius: 14, textAlign: 'center', fontWeight: 700, fontSize: 16, display: 'block',
               }}>
                 📞 전화하기
               </a>
-              <a href="https://open.kakao.com" target="_blank" rel="noopener noreferrer"
+              <a href="http://pf.kakao.com/_TdCExj" target="_blank" rel="noopener noreferrer"
                 style={{
                   padding: '17px', background: '#FEE500', color: '#3A1D1D',
                   borderRadius: 14, textAlign: 'center', fontWeight: 700, fontSize: 16, display: 'block',

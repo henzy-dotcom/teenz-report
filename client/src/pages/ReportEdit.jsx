@@ -54,7 +54,8 @@ function PDFUploadRow({ label, pdfType, reportId, existing, onRefresh }) {
 
   async function handleFile(e) {
     const file = e.target.files[0];
-    if (!file || file.type !== 'application/pdf') { showToast('PDF 파일만 업로드할 수 있습니다.', 'error'); return; }
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!file || !allowed.includes(file.type)) { showToast('이미지(JPG, PNG) 또는 PDF 파일만 업로드할 수 있습니다.', 'error'); return; }
     setUploading(true);
     const fd = new FormData();
     fd.append('file', file);
@@ -102,7 +103,7 @@ function PDFUploadRow({ label, pdfType, reportId, existing, onRefresh }) {
         </button>
         {existing && <button className="btn btn-danger btn-sm" onClick={handleDelete}>삭제</button>}
       </div>
-      <input ref={inputRef} type="file" accept=".pdf" style={{ display: 'none' }} onChange={handleFile} />
+      <input ref={inputRef} type="file" accept=".pdf,image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleFile} />
     </div>
   );
 }

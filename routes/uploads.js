@@ -40,7 +40,9 @@ module.exports = (db) => {
         db.prepare('DELETE FROM report_pdfs WHERE report_id = ? AND pdf_type = ?').run(reportId, pdfType);
       }
 
-      const filename = `${uuidv4()}.pdf`;
+      const extMap = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'application/pdf': '.pdf' };
+      const ext = extMap[req.file.mimetype] || '.pdf';
+      const filename = `${uuidv4()}${ext}`;
       fs.writeFileSync(path.join(PDF_DIR, filename), req.file.buffer);
 
       db.prepare(`
