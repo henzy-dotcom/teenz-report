@@ -144,6 +144,54 @@ db.exec(`
   );
 `);
 
+// ─── 챗봇 답변 테이블 ───
+db.exec(`
+  CREATE TABLE IF NOT EXISTS chat_answers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT UNIQUE NOT NULL,
+    label TEXT NOT NULL,
+    reply TEXT NOT NULL,
+    buttons TEXT NOT NULL DEFAULT '[]',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+// 기본 답변이 없으면 초기 데이터 삽입
+const existingAnswers = db.prepare('SELECT COUNT(*) as c FROM chat_answers').get();
+if (existingAnswers.c === 0) {
+  const defaults = [
+    { key: '인사',      label: '처음 인사 메시지',    reply: '안녕하세요! 링키영어 진해남문점 상담 안내 데스크예요 😊\n궁금하신 내용을 선택해주세요!',
+      buttons: JSON.stringify([{label:'👶 유치부 수업이 궁금해요',type:'msg'},{label:'📚 초등부 수업이 궁금해요',type:'msg'},{label:'🌱 영어 처음 시작이에요',type:'msg'},{label:'📝 레벨테스트가 뭔가요?',type:'msg'},{label:'💰 수강료가 궁금해요',type:'msg'},{label:'📍 위치/운영시간 알려주세요',type:'msg'}]) },
+    { key: '유치부',    label: '유치부 수업',          reply: '유치부는 듣기·말하기 중심으로 영어를 놀이처럼 배워요.\n파닉스도 재미있는 활동으로 진행돼요 😊',
+      buttons: JSON.stringify([{label:'📖 숙제는 얼마나 있나요?',type:'msg'},{label:'🎯 수업 방식이 어떻게 되나요?',type:'msg'},{label:'💰 수강료가 궁금해요',type:'msg'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'}]) },
+    { key: '초등부',    label: '초등부 수업',          reply: '초등부는 파닉스부터 리딩·스피킹·단어까지 단계별로 배워요.\n영어 경험이 없어도 괜찮아요 😊',
+      buttons: JSON.stringify([{label:'🔤 파닉스가 약한데요',type:'msg'},{label:'📗 읽기가 약한데요',type:'msg'},{label:'🗣️ 말하기 자신감이 없어요',type:'msg'},{label:'📝 레벨테스트가 뭔가요?',type:'msg'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'}]) },
+    { key: '처음',      label: '영어 처음 시작',       reply: '처음 시작하는 아이도 걱정 없어요!\n나이와 경험에 맞게 가장 편한 단계부터 시작해드려요 😊',
+      buttons: JSON.stringify([{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'👶 유치부 수업이 궁금해요',type:'msg'},{label:'📚 초등부 수업이 궁금해요',type:'msg'}]) },
+    { key: '파닉스',    label: '파닉스',               reply: '파닉스는 영어 읽기의 기초예요.\n아직 시작 안 한 아이도, 중간에 막힌 아이도 단계에 맞게 진행해드려요 😊',
+      buttons: JSON.stringify([{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '읽기',      label: '읽기(리딩)',            reply: '읽기가 약한 아이는 파닉스 확인부터 시작해서 단계별 리딩으로 자신감을 키워드려요 😊',
+      buttons: JSON.stringify([{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '말하기',    label: '말하기(스피킹)',        reply: '말하기 자신감은 충분한 듣기와 반복 연습으로 키울 수 있어요.\n수업 안에서 자연스럽게 스피킹을 연습해요 😊',
+      buttons: JSON.stringify([{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '레벨테스트',label: '레벨테스트 안내',       reply: '레벨테스트는 20~30분 내외로 부담 없이 진행돼요.\n아이에게 딱 맞는 반을 찾아드리기 위한 과정이에요 😊',
+      buttons: JSON.stringify([{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '수업방식',  label: '수업 방식/커리큘럼',   reply: '파닉스·리딩·스피킹·단어를 체계적으로 연결하는 커리큘럼이에요.\n자세한 내용은 방문상담 때 직접 보여드릴게요 😊',
+      buttons: JSON.stringify([{label:'📖 숙제는 얼마나 있나요?',type:'msg'},{label:'💰 수강료가 궁금해요',type:'msg'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '숙제',      label: '숙제량',               reply: '숙제는 복습 중심으로 부담스럽지 않게 구성돼요.\n레벨과 반에 따라 달라질 수 있어요 😊',
+      buttons: JSON.stringify([{label:'🎯 수업 방식이 어떻게 되나요?',type:'msg'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '수강료',    label: '수강료/비용',           reply: '수강료는 반 구성과 수업 시간에 따라 달라져요.\n정확한 금액은 상담 시 안내드릴게요 😊',
+      buttons: JSON.stringify([{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '위치시간',  label: '위치/운영시간',         reply: '경남 창원시 진해구 남문동에 있어요.\n운영시간: 월~금 오후 2시~9시, 토 오전 10시~오후 2시 😊',
+      buttons: JSON.stringify([{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'💬 다른 질문이 있어요',type:'msg'}]) },
+    { key: '기타',      label: '기타 (기본 응답)',      reply: '아이 상황에 따라 더 정확히 안내드릴 수 있어요.\n아래에서 궁금하신 내용을 선택해주세요 😊',
+      buttons: JSON.stringify([{label:'👶 유치부 수업이 궁금해요',type:'msg'},{label:'📚 초등부 수업이 궁금해요',type:'msg'},{label:'📝 레벨테스트가 뭔가요?',type:'msg'},{label:'💰 수강료가 궁금해요',type:'msg'},{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'}]) },
+  ];
+  const insert = db.prepare('INSERT INTO chat_answers (key, label, reply, buttons) VALUES (?, ?, ?, ?)');
+  for (const a of defaults) insert.run(a.key, a.label, a.reply, a.buttons);
+  console.log('✅ 챗봇 기본 답변 삽입 완료');
+}
+
 console.log('✅ DB 스키마 준비 완료:', DB_PATH);
 
 module.exports = { db, makeShareCode };

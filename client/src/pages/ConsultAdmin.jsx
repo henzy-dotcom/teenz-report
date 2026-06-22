@@ -124,7 +124,11 @@ export default function ConsultAdmin() {
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#2B3660' }}>신규생 상담 관리</h1>
           <div style={{ fontSize: 13, color: '#6B7280', marginTop: 3 }}>링키영어 진해남문점 유치부·초등부</div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/admin/consult/answers')}
+            style={{ padding: '9px 18px', background: '#F3EEFF', border: '1px solid #CBB7E8', borderRadius: 10, fontWeight: 700, cursor: 'pointer', color: '#6B4FA0', fontSize: 13 }}>
+            💬 AI 답변 편집
+          </button>
           <button onClick={() => setShowPromo(true)}
             style={{ padding: '9px 18px', background: '#B8E8D8', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', color: '#065F46', fontSize: 13 }}>
             📢 홍보 문구/링크

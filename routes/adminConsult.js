@@ -87,5 +87,23 @@ module.exports = (db) => {
     res.json({ ok: true });
   });
 
+  // ── 챗봇 답변 관리 ──────────────────────────────────────────────────
+
+  // GET /api/admin/consult/answers — 전체 답변 목록
+  router.get('/answers', (req, res) => {
+    const rows = db.prepare('SELECT * FROM chat_answers ORDER BY id ASC').all();
+    res.json(rows.map(r => ({ ...r, buttons: JSON.parse(r.buttons || '[]') })));
+  });
+
+  // PATCH /api/admin/consult/answers/:key — 답변 수정
+  router.patch('/answers/:key', (req, res) => {
+    const { reply, buttons } = req.body;
+    const row = db.prepare('SELECT id FROM chat_answers WHERE key = ?').get(req.params.key);
+    if (!row) return res.status(404).json({ error: '답변을 찾을 수 없습니다.' });
+    db.prepare('UPDATE chat_answers SET reply = ?, buttons = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?')
+      .run(reply, JSON.stringify(buttons || []), req.params.key);
+    res.json({ ok: true });
+  });
+
   return router;
 };
