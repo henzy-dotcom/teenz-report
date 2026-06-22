@@ -5,9 +5,10 @@ export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
-    { to: '/',        label: '대시보드',    end: true  },
-    { to: '/periods', label: '리포트 회차', end: false },
-    { to: '/students',label: '학생 관리',   end: false },
+    { to: '/',              label: '대시보드',    end: true  },
+    { to: '/periods',       label: '리포트 회차', end: false },
+    { to: '/students',      label: '학생 관리',   end: false },
+    { to: '/admin/consult', label: '신규생 상담', end: false },
   ];
 
   return (

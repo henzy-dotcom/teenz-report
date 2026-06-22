@@ -21,6 +21,8 @@ app.use('/api/periods', require('./routes/periods')(db));
 app.use('/api/reports', require('./routes/reports')(db));
 app.use('/api/upload', require('./routes/uploads')(db));
 app.use('/api/public', require('./routes/public')(db));
+app.use('/api/consult', require('./routes/consult')(db));
+app.use('/api/admin/consult', require('./routes/adminConsult')(db));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 

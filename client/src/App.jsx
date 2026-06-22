@@ -6,6 +6,9 @@ import Students from './pages/Students.jsx';
 import PeriodManage from './pages/PeriodManage.jsx';
 import ReportEdit from './pages/ReportEdit.jsx';
 import ParentView from './pages/ParentView.jsx';
+import ConsultPublic from './pages/ConsultPublic.jsx';
+import ConsultAdmin from './pages/ConsultAdmin.jsx';
+import ConsultDetail from './pages/ConsultDetail.jsx';
 
 export const ToastContext = React.createContext(null);
 
@@ -18,11 +21,12 @@ function AppInner() {
   };
 
   const isParent = location.pathname.startsWith('/report/') || location.pathname.startsWith('/r/');
+  const isConsultPublic = location.pathname === '/start' || location.pathname === '/consult';
 
   return (
     <ToastContext.Provider value={showToast}>
       <div className={isParent ? 'parent-view' : ''} style={isParent ? { minHeight: '100vh', background: 'var(--color-deep-navy)' } : {}}>
-        {!isParent && <NavBar />}
+        {!isParent && !isConsultPublic && <NavBar />}
         <Routes>
           <Route path="/"                             element={<Dashboard />} />
           <Route path="/students"                     element={<Students />} />
@@ -30,6 +34,10 @@ function AppInner() {
           <Route path="/reports/:periodId/:studentId" element={<ReportEdit />} />
           <Route path="/report/:token"                element={<ParentView />} />
           <Route path="/r/:shareCode"                 element={<ParentView />} />
+          <Route path="/start"                        element={<ConsultPublic />} />
+          <Route path="/consult"                      element={<ConsultPublic />} />
+          <Route path="/admin/consult"                element={<ConsultAdmin />} />
+          <Route path="/admin/consult/:id"            element={<ConsultDetail />} />
           <Route path="*"                             element={<Navigate to="/" replace />} />
         </Routes>
         {toast && (

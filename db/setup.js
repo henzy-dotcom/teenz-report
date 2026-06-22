@@ -105,6 +105,45 @@ if (withoutCode.length > 0) {
   console.log(`✅ ${withoutCode.length}명에게 공유 코드 생성 완료`);
 }
 
+// ─── 신규생 상담 시스템 테이블 ───
+db.exec(`
+  CREATE TABLE IF NOT EXISTS consultations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_name TEXT NOT NULL,
+    grade TEXT,
+    school TEXT,
+    parent_name TEXT,
+    parent_phone TEXT NOT NULL,
+    english_exp TEXT,
+    concerns TEXT,
+    consult_type TEXT,
+    preferred_time TEXT,
+    source TEXT,
+    note TEXT,
+    consent INTEGER DEFAULT 1,
+    status TEXT DEFAULT '신규 문의',
+    next_contact TEXT,
+    memo TEXT,
+    result TEXT,
+    recommended TEXT,
+    enrolled INTEGER DEFAULT 0,
+    ai_summary TEXT,
+    is_priority INTEGER DEFAULT 0,
+    session_id TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS chat_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    consultation_id INTEGER,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 console.log('✅ DB 스키마 준비 완료:', DB_PATH);
 
 module.exports = { db, makeShareCode };
