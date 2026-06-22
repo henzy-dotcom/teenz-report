@@ -1,40 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-function MascotSVG() {
-  return (
-    <svg width="72" height="80" viewBox="0 0 72 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-      {/* 왼쪽 귀 */}
-      <ellipse cx="18" cy="22" rx="9" ry="11" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
-      <ellipse cx="18" cy="23" rx="5" ry="7" fill="#F4A8B0"/>
-      {/* 오른쪽 귀 */}
-      <ellipse cx="54" cy="22" rx="9" ry="11" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
-      <ellipse cx="54" cy="23" rx="5" ry="7" fill="#F4A8B0"/>
-      {/* 몸통 */}
-      <ellipse cx="36" cy="74" rx="28" ry="20" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
-      {/* 얼굴 */}
-      <ellipse cx="36" cy="44" rx="26" ry="24" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
-      {/* 배 흰 부분 */}
-      <ellipse cx="36" cy="50" rx="14" ry="12" fill="#FFF8F0"/>
-      {/* 볼 */}
-      <ellipse cx="20" cy="48" rx="6" ry="4" fill="#F4A8B0" opacity="0.7"/>
-      <ellipse cx="52" cy="48" rx="6" ry="4" fill="#F4A8B0" opacity="0.7"/>
-      {/* 눈 */}
-      <circle cx="27" cy="40" r="3.5" fill="#3a2a1a"/>
-      <circle cx="45" cy="40" r="3.5" fill="#3a2a1a"/>
-      <circle cx="28.2" cy="38.8" r="1.2" fill="white"/>
-      <circle cx="46.2" cy="38.8" r="1.2" fill="white"/>
-      {/* 코 */}
-      <ellipse cx="36" cy="47" rx="3" ry="2" fill="#3a2a1a"/>
-      {/* 입 */}
-      <path d="M30 51 Q36 56 42 51" stroke="#3a2a1a" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-      {/* 왼팔 들기 */}
-      <ellipse cx="10" cy="55" rx="7" ry="14" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2" transform="rotate(-35 10 55)"/>
-      {/* 오른팔 */}
-      <ellipse cx="62" cy="62" rx="7" ry="11" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2" transform="rotate(20 62 62)"/>
-    </svg>
-  );
-}
 
 /* ─── 데이터 레이블 ─── */
 const HOMEWORK = {
@@ -328,8 +294,8 @@ export default function ParentView() {
         overflow: 'hidden',
       }}>
         {/* 마스코트 */}
-        <div style={{ position: 'absolute', bottom: -6, right: 12, opacity: 0.92 }}>
-          <MascotSVG />
+        <div style={{ position: 'absolute', bottom: -6, right: 12, opacity: 0.95 }}>
+          <img src="/쿼카얼굴.png" alt="" style={{ width: 72, height: 'auto', display: 'block' }} />
         </div>
         {/* 로고 + 기간 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
