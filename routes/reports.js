@@ -86,6 +86,20 @@ module.exports = (db) => {
     res.json({ sent: !!newSent });
   });
 
+  router.get('/student/:studentId/prev', (req, res) => {
+    const { studentId } = req.params;
+    const { currentPeriodId } = req.query;
+    const report = db.prepare(`
+      SELECT r.* FROM reports r
+      JOIN periods p ON p.id = r.period_id
+      WHERE r.student_id = ? AND r.period_id != ?
+      ORDER BY p.start_date DESC
+      LIMIT 1
+    `).get(studentId, currentPeriodId || 0);
+    if (!report) return res.status(404).json({ error: '이전 기간 없음' });
+    res.json(report);
+  });
+
   router.get('/period/:periodId/stats', (req, res) => {
     const stats = db.prepare(`
       SELECT

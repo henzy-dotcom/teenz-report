@@ -119,6 +119,14 @@ function StatusChip({ label, active, color, bg, borderColor }) {
   );
 }
 
+const COMMENT_TEMPLATES = [
+  '이번 달도 꾸준히 잘 참여해 주었습니다. 앞으로도 지금처럼 열심히 해주세요!',
+  '수업 태도가 매우 좋고 집중력이 뛰어납니다. 계속 이 모습 유지해 주세요!',
+  '숙제를 성실하게 해오고 있습니다. 복습도 꾸준히 해주시면 더 좋겠습니다.',
+  '조금 더 집중이 필요하지만 점점 나아지고 있습니다. 가정에서도 격려 부탁드립니다.',
+  '테스트 결과가 좋았습니다. 이 페이스를 유지하면 좋겠습니다!',
+];
+
 export default function ReportEdit() {
   const { periodId, studentId } = useParams();
   const navigate  = useNavigate();
@@ -126,6 +134,7 @@ export default function ReportEdit() {
   const [data, setData]     = useState(null);
   const [period, setPeriod] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [form, setForm]     = useState({
     comment: '', homework_status: '', test_result: '',
     attitude: '', improvement: '', published: false, completed: false, sent: false,
@@ -171,6 +180,25 @@ export default function ReportEdit() {
   async function handleComplete() {
     await handleSave({ completed: true, published: true });
     showToast('작성 완료 처리 및 공개 설정했습니다.', 'success');
+  }
+
+  async function copyFromPrevPeriod() {
+    try {
+      const res = await fetch(`/api/reports/student/${studentId}/prev?currentPeriodId=${periodId}`);
+      if (!res.ok) { showToast('이전 기간 리포트가 없습니다.', 'error'); return; }
+      const prev = await res.json();
+      setForm(p => ({
+        ...p,
+        comment:          prev.comment || p.comment,
+        homework_status:  prev.homework_status || p.homework_status,
+        test_result:      prev.test_result || p.test_result,
+        attitude:         prev.attitude || p.attitude,
+        improvement:      prev.improvement || p.improvement,
+      }));
+      showToast('이전 기간 내용을 불러왔습니다.');
+    } catch {
+      showToast('불러오기 실패', 'error');
+    }
   }
 
   if (!data || !period) return (
@@ -236,7 +264,28 @@ export default function ReportEdit() {
 
           {/* 학원 코멘트 */}
           <div style={S.card}>
-            <div style={S.sTitle}>학원 코멘트</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={S.sTitle}>학원 코멘트</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowTemplates(v => !v)}>
+                  📋 템플릿
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={copyFromPrevPeriod}>
+                  ⏮ 이전 기간 복사
+                </button>
+              </div>
+            </div>
+            {showTemplates && (
+              <div style={{ marginBottom: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {COMMENT_TEMPLATES.map((t, i) => (
+                  <button key={i} type="button" onClick={() => { setForm(p => ({ ...p, comment: t })); setShowTemplates(false); }} style={{
+                    textAlign: 'left', padding: '8px 12px', background: '#F9FAFB',
+                    border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12.5,
+                    color: '#374151', cursor: 'pointer', lineHeight: 1.5,
+                  }}>{t}</button>
+                ))}
+              </div>
+            )}
             <textarea
               className="input"
               value={form.comment}
