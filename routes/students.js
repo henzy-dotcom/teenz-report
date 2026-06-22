@@ -16,6 +16,34 @@ module.exports = ({ db, makeShareCode }) => {
     res.json(student);
   });
 
+  router.post('/bulk', (req, res) => {
+    const { students } = req.body;
+    if (!Array.isArray(students) || students.length === 0)
+      return res.status(400).json({ error: '학생 목록이 비어있습니다.' });
+
+    const insert = db.prepare(`
+      INSERT INTO students (name, grade, class_subject, teacher, parent_phone, consent_photo, status, share_token, share_code, share_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+    `);
+
+    const results = [];
+    const bulkInsert = db.transaction(() => {
+      for (const s of students) {
+        if (!s.name || !s.name.trim()) continue;
+        const share_token = uuidv4().replace(/-/g, '');
+        const share_code = makeShareCode(db);
+        const r = insert.run(
+          s.name.trim(), s.grade || '', s.class_subject || '', s.teacher || '',
+          s.parent_phone || '', s.consent_photo !== false ? 1 : 0,
+          s.status || 'active', share_token, share_code
+        );
+        results.push(db.prepare('SELECT * FROM students WHERE id = ?').get(r.lastInsertRowid));
+      }
+    });
+    bulkInsert();
+    res.status(201).json({ count: results.length, students: results });
+  });
+
   router.post('/', (req, res) => {
     const { name, grade, class_subject, teacher, parent_phone, consent_photo, status } = req.body;
     if (!name) return res.status(400).json({ error: '이름은 필수입니다.' });

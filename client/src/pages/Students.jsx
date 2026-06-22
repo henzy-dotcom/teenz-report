@@ -5,12 +5,35 @@ const PUBLIC_BASE = import.meta.env.VITE_PUBLIC_BASE_URL || window.location.orig
 const STATUS_LABEL = { active: '재원', suspended: '휴원', withdrawn: '퇴원' };
 const emptyForm = { name: '', grade: '', class_subject: '', teacher: '', parent_phone: '', consent_photo: true, status: 'active' };
 
+function parseBulkText(text) {
+  return text
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const cols = line.split(/\t|,/).map(c => c.trim());
+      return {
+        name: cols[0] || '',
+        grade: cols[1] || '',
+        class_subject: cols[2] || '',
+        teacher: cols[3] || '',
+        parent_phone: cols[4] || '',
+        consent_photo: true,
+        status: 'active',
+      };
+    })
+    .filter(s => s.name);
+}
+
 export default function Students() {
   const [students, setStudents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing]   = useState(null);
   const [form, setForm]         = useState(emptyForm);
   const [filter, setFilter]     = useState('active');
+  const [showBulk, setShowBulk]       = useState(false);
+  const [bulkText, setBulkText]       = useState('');
+  const [bulkPreview, setBulkPreview] = useState([]);
   const showToast = useContext(ToastContext);
 
   async function load() {
@@ -37,6 +60,28 @@ export default function Students() {
     load();
   }
 
+  function openBulk() { setBulkText(''); setBulkPreview([]); setShowBulk(true); }
+
+  function handleBulkTextChange(e) {
+    const text = e.target.value;
+    setBulkText(text);
+    setBulkPreview(parseBulkText(text));
+  }
+
+  async function handleBulkSubmit() {
+    if (bulkPreview.length === 0) { showToast('등록할 학생이 없습니다.', 'error'); return; }
+    const res = await fetch('/api/students/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ students: bulkPreview }),
+    });
+    if (!res.ok) { const d = await res.json(); showToast(d.error || '등록 실패', 'error'); return; }
+    const d = await res.json();
+    showToast(`${d.count}명 등록 완료!`);
+    setShowBulk(false);
+    load();
+  }
+
   async function toggleShareActive(s) {
     await fetch(`/api/students/${s.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ share_active: !s.share_active }) });
     showToast(s.share_active ? '공유 링크를 비활성화했습니다.' : '공유 링크를 활성화했습니다.', 'info');
@@ -59,7 +104,10 @@ export default function Students() {
           <h1 className="page-title">학생 관리</h1>
           <p className="page-subtitle">재원생 {activeCount}명</p>
         </div>
-        <button className="btn btn-primary" onClick={openNew}>+ 학생 등록</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={openBulk}>일괄 등록</button>
+          <button className="btn btn-primary" onClick={openNew}>+ 학생 등록</button>
+        </div>
       </div>
 
       <div className="filter-bar">
@@ -146,6 +194,64 @@ export default function Students() {
           )}
         </div>
       </div>
+
+      {/* 일괄 등록 모달 */}
+      {showBulk && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowBulk(false)}>
+          <div className="modal" style={{ maxWidth: 640, width: '95%' }}>
+            <h2 className="modal-title">학생 일괄 등록</h2>
+            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 12 }}>
+              한 줄에 한 명씩 입력하세요. 엑셀에서 복붙하거나 쉼표/탭으로 구분하면 자동 분리됩니다.<br />
+              <span style={{ color: '#9CA3AF' }}>형식: 이름 · 학년 · 반/과목 · 담당강사 · 연락처 (이름만 필수)</span>
+            </p>
+            <textarea
+              className="input"
+              rows={8}
+              style={{ fontFamily: 'monospace', fontSize: 13, resize: 'vertical' }}
+              placeholder={"홍길동\t중1\tT1R\tMs.Henzy\t010-1234-5678\n김철수\t초6\tT2\tMs.Henzy"}
+              value={bulkText}
+              onChange={handleBulkTextChange}
+            />
+
+            {bulkPreview.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+                  미리보기 — {bulkPreview.length}명
+                </p>
+                <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid #E5E7EB', borderRadius: 8 }}>
+                  <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#F9FAFB' }}>
+                        {['이름', '학년', '반/과목', '담당강사', '연락처'].map(h => (
+                          <th key={h} style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 600, color: '#6B7280', borderBottom: '1px solid #E5E7EB' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkPreview.map((s, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                          <td style={{ padding: '5px 10px', fontWeight: 600 }}>{s.name}</td>
+                          <td style={{ padding: '5px 10px', color: '#6B7280' }}>{s.grade || '—'}</td>
+                          <td style={{ padding: '5px 10px', color: '#6B7280' }}>{s.class_subject || '—'}</td>
+                          <td style={{ padding: '5px 10px', color: '#6B7280' }}>{s.teacher || '—'}</td>
+                          <td style={{ padding: '5px 10px', color: '#9CA3AF' }}>{s.parent_phone || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setShowBulk(false)}>취소</button>
+              <button className="btn btn-primary" onClick={handleBulkSubmit} disabled={bulkPreview.length === 0}>
+                {bulkPreview.length > 0 ? `${bulkPreview.length}명 등록` : '등록'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 학생 등록/수정 모달 */}
       {showModal && (
