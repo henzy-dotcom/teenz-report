@@ -54,7 +54,7 @@ module.exports = (db) => {
 
   router.put('/period/:periodId/student/:studentId', (req, res) => {
     const { periodId, studentId } = req.params;
-    const { comment, homework_status, test_result, attitude, improvement, published, completed, sent } = req.body;
+    const { comment, homework_status, homework_comment, test_result, attitude, attitude_comment, improvement, published, completed, sent } = req.body;
 
     let report = db.prepare('SELECT id FROM reports WHERE period_id = ? AND student_id = ?').get(periodId, studentId);
     if (!report) {
@@ -64,14 +64,14 @@ module.exports = (db) => {
 
     db.prepare(`
       UPDATE reports SET
-        comment = ?, homework_status = ?, test_result = ?,
-        attitude = ?, improvement = ?,
+        comment = ?, homework_status = ?, homework_comment = ?, test_result = ?,
+        attitude = ?, attitude_comment = ?, improvement = ?,
         published = ?, completed = ?, sent = ?,
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(
-      comment ?? '', homework_status ?? '', test_result ?? '',
-      attitude ?? '', improvement ?? '',
+      comment ?? '', homework_status ?? '', homework_comment ?? '', test_result ?? '',
+      attitude ?? '', attitude_comment ?? '', improvement ?? '',
       published ? 1 : 0, completed ? 1 : 0, sent ? 1 : 0,
       report.id
     );

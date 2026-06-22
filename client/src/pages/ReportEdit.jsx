@@ -127,6 +127,20 @@ const COMMENT_TEMPLATES = [
   '테스트 결과가 좋았습니다. 이 페이스를 유지하면 좋겠습니다!',
 ];
 
+const HOMEWORK_COMMENT_TEMPLATES = [
+  '매번 빠짐없이 제출해 줘서 기특해요!',
+  '다음엔 좀 더 꼼꼼하게 확인하고 제출해 주세요.',
+  '숙제 습관이 점점 좋아지고 있어요!',
+  '가정에서 함께 확인해 주시면 더욱 좋겠습니다.',
+];
+
+const ATTITUDE_COMMENT_TEMPLATES = [
+  '수업 시간에 항상 밝고 씩씩하게 참여해요!',
+  '친구들과 사이좋게 잘 어울려요.',
+  '조금만 더 집중해 주면 훨씬 잘할 수 있어요!',
+  '발표도 적극적으로 하는 모습이 보기 좋아요.',
+];
+
 export default function ReportEdit() {
   const { periodId, studentId } = useParams();
   const navigate  = useNavigate();
@@ -135,9 +149,11 @@ export default function ReportEdit() {
   const [period, setPeriod] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showHwTemplates, setShowHwTemplates] = useState(false);
+  const [showAttTemplates, setShowAttTemplates] = useState(false);
   const [form, setForm]     = useState({
-    comment: '', homework_status: '', test_result: '',
-    attitude: '', improvement: '', published: false, completed: false, sent: false,
+    comment: '', homework_status: '', homework_comment: '', test_result: '',
+    attitude: '', attitude_comment: '', improvement: '', published: false, completed: false, sent: false,
   });
   const [photos, setPhotos] = useState({ homework: null, test: null, activity: null });
   const [pdfs, setPdfs]     = useState({ weekly1: null, weekly2: null, monthly: null });
@@ -151,7 +167,8 @@ export default function ReportEdit() {
     setPeriod(p);
     setForm({
       comment: r.comment || '', homework_status: r.homework_status || '',
-      test_result: r.test_result || '', attitude: r.attitude || '',
+      homework_comment: r.homework_comment || '', test_result: r.test_result || '',
+      attitude: r.attitude || '', attitude_comment: r.attitude_comment || '',
       improvement: r.improvement || '', published: !!r.published,
       completed: !!r.completed, sent: !!r.sent,
     });
@@ -300,15 +317,47 @@ export default function ReportEdit() {
             <div style={S.sTitle}>평가 항목</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label className="label">숙제 상태</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label className="label" style={{ margin: 0 }}>숙제 상태</label>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowHwTemplates(v => !v)} style={{ fontSize: 11 }}>한마디 템플릿</button>
+                </div>
                 <SelectGroup options={HOMEWORK_OPTIONS} value={form.homework_status} onChange={v => setForm(p => ({ ...p, homework_status: v }))} />
+                {showHwTemplates && (
+                  <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {HOMEWORK_COMMENT_TEMPLATES.map((t, i) => (
+                      <button key={i} type="button" onClick={() => { setForm(p => ({ ...p, homework_comment: t })); setShowHwTemplates(false); }} style={{
+                        textAlign: 'left', padding: '6px 10px', background: '#F9FAFB',
+                        border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 12,
+                        color: '#374151', cursor: 'pointer',
+                      }}>{t}</button>
+                    ))}
+                  </div>
+                )}
+                <input className="input" value={form.homework_comment} onChange={e => setForm(p => ({ ...p, homework_comment: e.target.value }))}
+                  placeholder="한마디 (학부모 화면에 연한 글씨로 표시)" style={{ marginTop: 6, fontSize: 12 }} />
               </div>
               <div>
-                <label className="label">수업 태도</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label className="label" style={{ margin: 0 }}>수업 태도</label>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAttTemplates(v => !v)} style={{ fontSize: 11 }}>한마디 템플릿</button>
+                </div>
                 <SelectGroup options={ATTITUDE_OPTIONS} value={form.attitude} onChange={v => setForm(p => ({ ...p, attitude: v }))} />
+                {showAttTemplates && (
+                  <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {ATTITUDE_COMMENT_TEMPLATES.map((t, i) => (
+                      <button key={i} type="button" onClick={() => { setForm(p => ({ ...p, attitude_comment: t })); setShowAttTemplates(false); }} style={{
+                        textAlign: 'left', padding: '6px 10px', background: '#F9FAFB',
+                        border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 12,
+                        color: '#374151', cursor: 'pointer',
+                      }}>{t}</button>
+                    ))}
+                  </div>
+                )}
+                <input className="input" value={form.attitude_comment} onChange={e => setForm(p => ({ ...p, attitude_comment: e.target.value }))}
+                  placeholder="한마디 (학부모 화면에 연한 글씨로 표시)" style={{ marginTop: 6, fontSize: 12 }} />
               </div>
               <div>
-                <label className="label">테스트 / 단어 평가</label>
+                <label className="label">단어 테스트</label>
                 <input className="input" value={form.test_result} onChange={e => setForm(p => ({ ...p, test_result: e.target.value }))} placeholder="예: 단어 테스트 92점 (23/25)" />
               </div>
               <div>

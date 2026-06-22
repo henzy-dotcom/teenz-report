@@ -1,6 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+function MascotSVG() {
+  return (
+    <svg width="72" height="80" viewBox="0 0 72 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
+      {/* 왼쪽 귀 */}
+      <ellipse cx="18" cy="22" rx="9" ry="11" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
+      <ellipse cx="18" cy="23" rx="5" ry="7" fill="#F4A8B0"/>
+      {/* 오른쪽 귀 */}
+      <ellipse cx="54" cy="22" rx="9" ry="11" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
+      <ellipse cx="54" cy="23" rx="5" ry="7" fill="#F4A8B0"/>
+      {/* 몸통 */}
+      <ellipse cx="36" cy="74" rx="28" ry="20" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
+      {/* 얼굴 */}
+      <ellipse cx="36" cy="44" rx="26" ry="24" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2"/>
+      {/* 배 흰 부분 */}
+      <ellipse cx="36" cy="50" rx="14" ry="12" fill="#FFF8F0"/>
+      {/* 볼 */}
+      <ellipse cx="20" cy="48" rx="6" ry="4" fill="#F4A8B0" opacity="0.7"/>
+      <ellipse cx="52" cy="48" rx="6" ry="4" fill="#F4A8B0" opacity="0.7"/>
+      {/* 눈 */}
+      <circle cx="27" cy="40" r="3.5" fill="#3a2a1a"/>
+      <circle cx="45" cy="40" r="3.5" fill="#3a2a1a"/>
+      <circle cx="28.2" cy="38.8" r="1.2" fill="white"/>
+      <circle cx="46.2" cy="38.8" r="1.2" fill="white"/>
+      {/* 코 */}
+      <ellipse cx="36" cy="47" rx="3" ry="2" fill="#3a2a1a"/>
+      {/* 입 */}
+      <path d="M30 51 Q36 56 42 51" stroke="#3a2a1a" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+      {/* 왼팔 들기 */}
+      <ellipse cx="10" cy="55" rx="7" ry="14" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2" transform="rotate(-35 10 55)"/>
+      {/* 오른팔 */}
+      <ellipse cx="62" cy="62" rx="7" ry="11" fill="#F5DEB3" stroke="#3a2a1a" strokeWidth="2" transform="rotate(20 62 62)"/>
+    </svg>
+  );
+}
+
 /* ─── 데이터 레이블 ─── */
 const HOMEWORK = {
   done:    { text: '완료',      emoji: '✅', bg: '#E8F8F1', color: '#1a7a50', border: '#B8E8D8' },
@@ -30,7 +65,7 @@ function PDFPanel({ pdf }) {
   const [open, setOpen] = useState(false);
   const rawUrl = `/uploads/pdfs/${pdf.filename}`;
   const absoluteUrl = `${window.location.origin}${rawUrl}`;
-  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
+  const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(absoluteUrl)}`;
   const label = PDF_LABEL[pdf.pdf_type] || pdf.pdf_type;
 
   return (
@@ -78,29 +113,21 @@ function PDFPanel({ pdf }) {
           borderTop: 'none',
           borderRadius: '0 0 12px 12px',
           overflow: 'hidden',
-          background: '#f4f4f4',
+          background: 'white',
+          padding: '14px',
           marginBottom: 0,
         }}>
-          <iframe
-            src={viewerUrl}
-            style={{ width: '100%', height: '72vh', border: 'none', display: 'block' }}
-            title={label}
-          />
-          <div style={{
-            background: 'white',
-            borderTop: '1px solid #eee',
-            padding: '10px 14px',
-            display: 'flex',
-            gap: 8,
-          }}>
-            <a href={viewerUrl} target="_blank" rel="noopener noreferrer"
-              style={{
-                flex: 1, padding: '11px', background: '#2B3660', color: 'white',
-                borderRadius: 10, textAlign: 'center', fontSize: 13, fontWeight: 600, display: 'block',
-              }}>
-              새 탭에서 크게 보기 ↗
-            </a>
-          </div>
+          <p style={{ fontSize: 13, color: '#888', marginBottom: 12, lineHeight: 1.6 }}>
+            아래 버튼을 눌러 리포트를 확인하세요.
+          </p>
+          <a href={viewerUrl} target="_blank" rel="noopener noreferrer"
+            style={{
+              display: 'block', padding: '14px', background: '#2B3660', color: 'white',
+              borderRadius: 10, textAlign: 'center', fontSize: 14, fontWeight: 700,
+              textDecoration: 'none',
+            }}>
+            📄 리포트 보기 ↗
+          </a>
         </div>
       )}
     </div>
@@ -182,8 +209,8 @@ function PrevReportCard({ report }) {
           )}
           {(hw || att || report.test_result) && (
             <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {hw && <span style={{ padding: '5px 12px', background: hw.bg, color: hw.color, borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{hw.emoji} {hw.text}</span>}
-              {att && <span style={{ padding: '5px 12px', background: att.bg, color: att.color, borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{att.emoji} {att.text}</span>}
+              {hw && <div><span style={{ padding: '5px 12px', background: hw.bg, color: hw.color, borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{hw.emoji} {hw.text}</span>{report.homework_comment && <div style={{ fontSize: 11, color: '#BBB', marginTop: 4, paddingLeft: 2 }}>{report.homework_comment}</div>}</div>}
+              {att && <div><span style={{ padding: '5px 12px', background: att.bg, color: att.color, borderRadius: 20, fontSize: 12, fontWeight: 600 }}>{att.emoji} {att.text}</span>{report.attitude_comment && <div style={{ fontSize: 11, color: '#BBB', marginTop: 4, paddingLeft: 2 }}>{report.attitude_comment}</div>}</div>}
               {report.test_result && <span style={{ padding: '5px 12px', background: '#EEF6FF', color: '#2B5CA0', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>📊 {report.test_result}</span>}
             </div>
           )}
@@ -298,7 +325,12 @@ export default function ParentView() {
         background: '#2B3660',
         padding: '16px 20px 22px',
         position: 'sticky', top: 0, zIndex: 50,
+        overflow: 'hidden',
       }}>
+        {/* 마스코트 */}
+        <div style={{ position: 'absolute', bottom: -6, right: 12, opacity: 0.92 }}>
+          <MascotSVG />
+        </div>
         {/* 로고 + 기간 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -387,11 +419,12 @@ export default function ParentView() {
                     <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>{hw?.emoji || '—'}</span>
                     <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>숙제</span>
                     <div style={{ fontSize: 12, fontWeight: 700, color: hw?.color || '#888' }}>{hw?.text || '—'}</div>
+                    {latest.homework_comment && <div style={{ fontSize: 10, color: '#BBB', marginTop: 5, lineHeight: 1.4 }}>{latest.homework_comment}</div>}
                   </div>
                   {/* 테스트 */}
                   <div style={{ background: '#EEF6FF', border: '1.5px solid #C5DCEF', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
                     <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>📊</span>
-                    <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>테스트</span>
+                    <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>단어 테스트</span>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#2B5CA0', lineHeight: 1.3 }}>
                       {latest.test_result || '—'}
                     </div>
@@ -405,6 +438,7 @@ export default function ParentView() {
                     <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>{att?.emoji || '—'}</span>
                     <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>수업 태도</span>
                     <div style={{ fontSize: 12, fontWeight: 700, color: att?.color || '#888' }}>{att?.text || '—'}</div>
+                    {latest.attitude_comment && <div style={{ fontSize: 10, color: '#BBB', marginTop: 5, lineHeight: 1.4 }}>{latest.attitude_comment}</div>}
                   </div>
                 </div>
               </div>

@@ -72,7 +72,11 @@ db.exec(`
   );
 `);
 
-// ─── share_code 컬럼 마이그레이션 ───
+// ─── 마이그레이션 ───
+['homework_comment TEXT', 'attitude_comment TEXT'].forEach(col => {
+  try { db.exec(`ALTER TABLE reports ADD COLUMN ${col}`); } catch(e) {}
+});
+
 try {
   db.exec('ALTER TABLE students ADD COLUMN share_code TEXT');
   console.log('✅ share_code 컬럼 추가됨');

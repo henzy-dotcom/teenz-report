@@ -30,7 +30,7 @@ function buildResponse(db, student) {
 
   return {
     student: {
-      masked_name: maskName(student.name),
+      masked_name: student.name,
       grade: student.grade,
       class_subject: student.class_subject,
       teacher: student.teacher,
