@@ -2,6 +2,25 @@ import React, { useEffect, useState, useCallback, useContext, useRef } from 'rea
 import { useParams, useNavigate } from 'react-router-dom';
 import { ToastContext } from '../App.jsx';
 
+function Section({ title, open, onToggle, badge, children }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 10px rgba(43,54,96,0.07)', border: '1px solid #E5E7EB', marginBottom: 12, overflow: 'hidden' }}>
+      <button onClick={onToggle} style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer',
+        borderBottom: open ? '1px solid #F3F4F6' : 'none',
+      }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: '#2B3660' }}>{title}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {badge && <span style={{ fontSize: 11, color: '#9CA3AF' }}>{badge}</span>}
+          <span style={{ fontSize: 18, color: '#9CA3AF', lineHeight: 1, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>⌄</span>
+        </div>
+      </button>
+      {open && <div style={{ padding: '16px 20px' }}>{children}</div>}
+    </div>
+  );
+}
+
 const S = {
   card: { background: '#fff', borderRadius: 16, padding: '20px 22px', boxShadow: '0 2px 10px rgba(43,54,96,0.07)', border: '1px solid #E5E7EB', marginBottom: 16 },
   sectionTitle: { fontSize: 15, fontWeight: 700, color: '#2B3660', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 },
@@ -45,6 +64,9 @@ export default function MonthlyReportDetail() {
   const [saved, setSaved] = useState(true);
   const [saving, setSaving] = useState(false);
   const saveTimer = useRef(null);
+
+  const [open, setOpen] = useState({ students: true, finance: true, checklist: true, promo: true, retro: true });
+  const toggle = (key) => setOpen(prev => ({ ...prev, [key]: !prev[key] }));
 
   // 신규생/퇴원생 모달
   const [newStudentModal, setNewStudentModal] = useState(false);
@@ -246,8 +268,8 @@ export default function MonthlyReportDetail() {
       </div>
 
       {/* 1. 학생 현황 */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>👥 학생 현황</div>
+      <Section title="👥 학생 현황" open={open.students} onToggle={() => toggle('students')}
+        badge={`재원 ${report.enrolled_count || 0}명 · 신규 ${report.new_count || 0} · 퇴원 ${report.withdrawn_count || 0}`}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
           {[
             { label: '재원생', field: 'enrolled_count', color: '#2B3660', bg: '#EFF6FF' },
@@ -261,15 +283,11 @@ export default function MonthlyReportDetail() {
             </div>
           ))}
         </div>
-
-        {/* 재원생 수 직접 입력 */}
         <div style={{ marginBottom: 14 }}>
           <div style={S.label}>재원생 수 직접 입력</div>
           <input type="number" style={{ ...S.numInput, maxWidth: 140 }} value={report.enrolled_count || 0}
             onChange={e => updateField('enrolled_count', parseInt(e.target.value) || 0)} />
         </div>
-
-        {/* 신규생 */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#059669' }}>📗 신규생 ({report.new_students?.length || 0}명)</div>
@@ -287,8 +305,6 @@ export default function MonthlyReportDetail() {
             </div>
           ))}
         </div>
-
-        {/* 퇴원생 */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#DC2626' }}>📕 퇴원생 ({report.withdrawn_students?.length || 0}명)</div>
@@ -306,13 +322,11 @@ export default function MonthlyReportDetail() {
             </div>
           ))}
         </div>
-      </div>
+      </Section>
 
       {/* 2. 수납/정산 */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>💰 수납 / 정산</div>
-
-        {/* 자동 계산 요약 */}
+      <Section title="💰 수납 / 정산" open={open.finance} onToggle={() => toggle('finance')}
+        badge={`수납 ${fmtMoney(report.total_revenue)} · 잔액 ${fmtMoney(netRevenue)}`}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 18, padding: '14px 16px', background: '#F8F9FB', borderRadius: 12 }}>
           {[
             { label: '교재비 제외 매출', value: fmtMoney(revenueExcl), color: '#2B3660' },
@@ -325,7 +339,6 @@ export default function MonthlyReportDetail() {
             </div>
           ))}
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
           {[
             { label: '총 수납액', field: 'total_revenue' },
@@ -338,8 +351,6 @@ export default function MonthlyReportDetail() {
             </div>
           ))}
         </div>
-
-        {/* 지출 항목 */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>🧾 지출 항목 (합계: {fmtMoney(expenseTotal)})</div>
@@ -357,8 +368,6 @@ export default function MonthlyReportDetail() {
             </div>
           ))}
         </div>
-
-        {/* 메모 */}
         {[
           { label: '미납 메모', field: 'unpaid_memo', placeholder: '미납 학생 및 금액 메모' },
           { label: '환불/할인 메모', field: 'refund_memo', placeholder: '환불 또는 할인 내용 메모' },
@@ -370,35 +379,28 @@ export default function MonthlyReportDetail() {
               onChange={e => updateField(field, e.target.value)} />
           </div>
         ))}
-      </div>
+      </Section>
 
       {/* 3. 재원생 관리 체크리스트 */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>
-          ✅ 재원생 관리 기록
-          <span style={{ fontSize: 11, fontWeight: 600, marginLeft: 'auto', color: checkDone === checkTotal ? '#059669' : '#D97706' }}>
-            {checkDone}/{checkTotal} 완료
-          </span>
-        </div>
+      <Section title="✅ 재원생 관리 기록" open={open.checklist} onToggle={() => toggle('checklist')}
+        badge={`${checkDone}/${checkTotal} 완료`}>
         {(report.checklist || []).map(c => (
-          <div key={c.item_key} style={{ marginBottom: 12, padding: '10px 12px', background: c.checked ? '#F0FDF4' : '#F8F9FB', borderRadius: 10, border: `1px solid ${c.checked ? '#BBF7D0' : '#E5E7EB'}` }}>
+          <div key={c.item_key} style={{ marginBottom: 10, padding: '10px 12px', background: c.checked ? '#F0FDF4' : '#F8F9FB', borderRadius: 10, border: `1px solid ${c.checked ? '#BBF7D0' : '#E5E7EB'}` }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
               <input type="checkbox" checked={!!c.checked} onChange={e => toggleCheck(c.item_key, e.target.checked, c.memo)}
                 style={{ width: 18, height: 18, accentColor: '#2B3660', cursor: 'pointer' }} />
-              <span style={{ fontWeight: 600, fontSize: 13, color: c.checked ? '#065F46' : '#374151', textDecoration: c.checked ? 'none' : 'none' }}>
-                {c.item_key}
-              </span>
+              <span style={{ fontWeight: 600, fontSize: 13, color: c.checked ? '#065F46' : '#374151' }}>{c.item_key}</span>
             </label>
             <input style={{ ...S.numInput, fontSize: 12, marginTop: 8, fontWeight: 400, color: '#6B7280' }}
               placeholder="메모 (선택)" value={c.memo || ''}
               onChange={e => updateCheckMemo(c.item_key, e.target.value)} />
           </div>
         ))}
-      </div>
+      </Section>
 
       {/* 4. 홍보 기록 */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>📣 홍보 기록</div>
+      <Section title="📣 홍보 기록" open={open.promo} onToggle={() => toggle('promo')}
+        badge={`달성률 ${report.promotions?.length ? Math.round((report.promotions.reduce((s,p)=>s+p.actual,0)/report.promotions.reduce((s,p)=>s+p.target,0))*100) : 0}%`}>
         {(report.promotions || []).map(p => (
           <div key={p.id} style={{ marginBottom: 14, padding: '14px 16px', background: '#F8F9FB', borderRadius: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -420,11 +422,11 @@ export default function MonthlyReportDetail() {
               onChange={e => updatePromo(p.id, 'memo', e.target.value)} />
           </div>
         ))}
-      </div>
+      </Section>
 
       {/* 5. 월간 회고 */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>📝 월간 회고</div>
+      <Section title="📝 월간 회고" open={open.retro} onToggle={() => toggle('retro')}
+        badge={report.reflection_good ? '작성됨' : '미작성'}>
         {[
           { label: '이번 달 잘된 점', field: 'reflection_good', placeholder: '이번 달 특히 잘 됐던 것들을 기록해보세요' },
           { label: '이번 달 아쉬운 점', field: 'reflection_bad', placeholder: '아쉬웠거나 개선이 필요한 부분을 적어보세요' },
@@ -437,7 +439,7 @@ export default function MonthlyReportDetail() {
               onChange={e => updateField(field, e.target.value)} />
           </div>
         ))}
-      </div>
+      </Section>
 
       {/* 신규생 모달 */}
       {newStudentModal && (
