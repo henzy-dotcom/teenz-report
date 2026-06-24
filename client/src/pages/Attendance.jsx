@@ -34,6 +34,17 @@ export default function Attendance() {
   const [rows, setRows] = useState([]);
   const showToast = useContext(ToastContext);
 
+  function moveMonth(delta) {
+    const [y, m] = yearMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setYearMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
+  function fmtYM(ym) {
+    const [y, m] = ym.split('-');
+    return `${y}년 ${parseInt(m)}월`;
+  }
+
   const load = useCallback(async () => {
     const res = await fetch(`/api/attendance/${yearMonth}`);
     setRows(await res.json());
@@ -68,11 +79,11 @@ export default function Attendance() {
           <h1 className="page-title">출결 관리</h1>
           <p className="page-subtitle">결석 및 보충 현황</p>
         </div>
-        <input
-          type="month" value={yearMonth}
-          onChange={e => setYearMonth(e.target.value)}
-          style={{ padding: '8px 12px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#2B3660', cursor: 'pointer' }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => moveMonth(-1)} style={{ width: 32, height: 32, borderRadius: 8, border: '1.5px solid #E5E7EB', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#2B3660' }}>‹</button>
+          <div style={{ padding: '6px 14px', background: '#2B3660', color: '#fff', borderRadius: 10, fontSize: 14, fontWeight: 700, minWidth: 110, textAlign: 'center' }}>{fmtYM(yearMonth)}</div>
+          <button onClick={() => moveMonth(1)} style={{ width: 32, height: 32, borderRadius: 8, border: '1.5px solid #E5E7EB', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#2B3660' }}>›</button>
+        </div>
       </div>
 
       {/* 요약 */}
@@ -100,56 +111,41 @@ export default function Attendance() {
             fontSize: 12, fontWeight: 700,
           }}>{cls}</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
             {students.map(s => {
               const unmade = Math.max(0, s.absent - s.makeup);
               return (
                 <div key={s.id} style={{
                   background: '#fff',
                   borderRadius: 16,
-                  padding: '16px 14px',
+                  padding: '12px 10px',
                   boxShadow: '0 2px 10px rgba(43,54,96,0.07)',
                   border: unmade > 0 ? '1.5px solid #FCD34D' : '1px solid #E5E7EB',
                 }}>
                   {/* 이름 */}
-                  <div style={{ textAlign: 'center', marginBottom: 14 }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      background: '#EFF6FF', color: '#2B3660',
-                      fontWeight: 800, fontSize: 15,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      margin: '0 auto 6px',
-                    }}>{s.name[0]}</div>
+                  <div style={{ textAlign: 'center', marginBottom: 10 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: '#1C1C1E' }}>{s.name}</div>
-                    {s.grade && <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{s.grade}</div>}
+                    {s.grade && <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 1 }}>{s.grade}</div>}
                   </div>
 
                   {/* 결석 */}
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: '#DC2626', fontWeight: 700, textAlign: 'center', marginBottom: 5 }}>결석</div>
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, color: '#DC2626', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>결석</div>
                     <Counter value={s.absent} color="#DC2626" bg="#FEF2F2" onChange={v => update(s.id, v, s.makeup)} />
                   </div>
 
                   {/* 보충 */}
-                  <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 10, color: '#059669', fontWeight: 700, textAlign: 'center', marginBottom: 5 }}>보충</div>
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, color: '#059669', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>보충</div>
                     <Counter value={s.makeup} color="#059669" bg="#F0FDF4" onChange={v => update(s.id, s.absent, v)} />
                   </div>
 
                   {/* 미보충 뱃지 */}
-                  <div style={{ textAlign: 'center', marginTop: 4 }}>
+                  <div style={{ textAlign: 'center' }}>
                     {unmade > 0 ? (
-                      <span style={{
-                        display: 'inline-block', padding: '3px 10px',
-                        background: '#FEF3C7', color: '#D97706',
-                        borderRadius: 20, fontSize: 11, fontWeight: 700,
-                      }}>미보충 {unmade}회</span>
+                      <span style={{ display: 'inline-block', padding: '2px 10px', background: '#FEF3C7', color: '#D97706', borderRadius: 20, fontSize: 10, fontWeight: 700 }}>미보충 {unmade}회</span>
                     ) : (
-                      <span style={{
-                        display: 'inline-block', padding: '3px 10px',
-                        background: '#F3F4F6', color: '#9CA3AF',
-                        borderRadius: 20, fontSize: 11, fontWeight: 600,
-                      }}>완료</span>
+                      <span style={{ display: 'inline-block', padding: '2px 10px', background: '#F3F4F6', color: '#9CA3AF', borderRadius: 20, fontSize: 10, fontWeight: 600 }}>완료</span>
                     )}
                   </div>
                 </div>
