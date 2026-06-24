@@ -11,6 +11,7 @@ import ConsultAdmin from './pages/ConsultAdmin.jsx';
 import ConsultDetail from './pages/ConsultDetail.jsx';
 import ConsultAnswers from './pages/ConsultAnswers.jsx';
 import KakaoTemplates from './pages/KakaoTemplates.jsx';
+import Attendance from './pages/Attendance.jsx';
 
 export const ToastContext = React.createContext(null);
 
@@ -42,6 +43,7 @@ function AppInner() {
           <Route path="/admin/consult/answers"        element={<ConsultAnswers />} />
           <Route path="/admin/consult/:id"            element={<ConsultDetail />} />
           <Route path="/kakao-templates"              element={<KakaoTemplates />} />
+          <Route path="/attendance"                   element={<Attendance />} />
           <Route path="*"                             element={<Navigate to="/" replace />} />
         </Routes>
         {toast && (

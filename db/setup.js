@@ -105,6 +105,20 @@ if (withoutCode.length > 0) {
   console.log(`✅ ${withoutCode.length}명에게 공유 코드 생성 완료`);
 }
 
+// ─── 출결 테이블 ───
+db.exec(`
+  CREATE TABLE IF NOT EXISTS attendance (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    year_month TEXT NOT NULL,
+    absent INTEGER DEFAULT 0,
+    makeup INTEGER DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(student_id, year_month),
+    FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE
+  );
+`);
+
 // ─── 신규생 상담 시스템 테이블 ───
 db.exec(`
   CREATE TABLE IF NOT EXISTS consultations (

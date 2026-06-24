@@ -10,6 +10,7 @@ export default function NavBar() {
     { to: '/students',      label: '학생 관리',   end: false },
     { to: '/admin/consult', label: '신규생 상담', end: false },
     { to: '/kakao-templates', label: '카톡 템플릿', end: false },
+    { to: '/attendance',      label: '출결 관리',   end: false },
   ];
 
   return (
