@@ -65,8 +65,17 @@ export default function MonthlyReportDetail() {
   const [saving, setSaving] = useState(false);
   const saveTimer = useRef(null);
 
-  const [open, setOpen] = useState({ students: true, finance: true, checklist: true, promo: true, retro: true });
-  const toggle = (key) => setOpen(prev => ({ ...prev, [key]: !prev[key] }));
+  const [open, setOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mr-sections');
+      return saved ? JSON.parse(saved) : { students: true, finance: true, checklist: true, promo: true, retro: true };
+    } catch { return { students: true, finance: true, checklist: true, promo: true, retro: true }; }
+  });
+  const toggle = (key) => setOpen(prev => {
+    const next = { ...prev, [key]: !prev[key] };
+    localStorage.setItem('mr-sections', JSON.stringify(next));
+    return next;
+  });
 
   // 신규생/퇴원생 모달
   const [newStudentModal, setNewStudentModal] = useState(false);
