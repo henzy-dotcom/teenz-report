@@ -113,6 +113,31 @@ function PDFPanel({ pdf }) {
   );
 }
 
+/* ─── 사진 슬라이더 ─── */
+function PhotoSlider({ photos, label, emoji }) {
+  const [idx, setIdx] = useState(0);
+  if (!photos || photos.length === 0) return null;
+  const current = photos[idx];
+  return (
+    <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(43,54,96,0.1)', marginBottom: 12 }}>
+      <div style={{ padding: '9px 14px', background: '#2B3660', fontSize: 13, color: 'white', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span>{emoji} {label}</span>
+        {photos.length > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => setIdx(i => (i - 1 + photos.length) % photos.length)}
+              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{idx + 1} / {photos.length}</span>
+            <button onClick={() => setIdx(i => (i + 1) % photos.length)}
+              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+          </div>
+        )}
+      </div>
+      <img src={`/uploads/photos/${current.filename}`} alt={label} loading="lazy"
+        style={{ width: '100%', display: 'block', maxHeight: 360, objectFit: 'cover' }} />
+    </div>
+  );
+}
+
 /* ─── 빈 PDF 슬롯 ─── */
 function PDFEmpty({ type }) {
   return (
@@ -487,31 +512,12 @@ export default function ParentView() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#2B3660', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
                   📸 수업 사진
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {photos.map(photo => {
-                    const lbl = PHOTO_LABEL[photo.photo_type];
-                    return (
-                      <div key={photo.id} style={{
-                        borderRadius: 12, overflow: 'hidden',
-                        boxShadow: '0 2px 8px rgba(43,54,96,0.1)',
-                      }}>
-                        <div style={{
-                          padding: '9px 14px', background: '#2B3660',
-                          fontSize: 13, color: 'white', fontWeight: 600,
-                          display: 'flex', alignItems: 'center', gap: 6,
-                        }}>
-                          {lbl?.emoji} {lbl?.text}
-                        </div>
-                        <img
-                          src={`/uploads/photos/${photo.filename}`}
-                          alt={lbl?.text}
-                          loading="lazy"
-                          style={{ width: '100%', display: 'block', maxHeight: 360, objectFit: 'cover' }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
+                {['activity', 'homework', 'test'].map(base => {
+                  const group = photos.filter(p => p.photo_type === base || p.photo_type === base + '2');
+                  if (group.length === 0) return null;
+                  const lbl = PHOTO_LABEL[base];
+                  return <PhotoSlider key={base} photos={group} label={lbl.text} emoji={lbl.emoji} />;
+                })}
               </div>
             )}
 

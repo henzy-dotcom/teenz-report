@@ -156,7 +156,7 @@ export default function ReportEdit() {
     comment: '', homework_status: '', homework_comment: '', test_result: '',
     attitude: '', attitude_comment: '', improvement: '', published: false, completed: false, sent: false,
   });
-  const [photos, setPhotos] = useState({ homework: null, test: null, activity: null });
+  const [photos, setPhotos] = useState({ homework: null, test: null, activity: null, homework2: null, test2: null, activity2: null });
   const [pdfs, setPdfs]     = useState({ weekly1: null, weekly2: null, monthly: null });
 
   async function loadReport() {
@@ -173,7 +173,7 @@ export default function ReportEdit() {
       improvement: r.improvement || '', published: !!r.published,
       completed: !!r.completed, sent: !!r.sent,
     });
-    const photoMap = { homework: null, test: null, activity: null };
+    const photoMap = { homework: null, test: null, activity: null, homework2: null, test2: null, activity2: null };
     (r.photos || []).forEach(ph => { photoMap[ph.photo_type] = ph.filename; });
     setPhotos(photoMap);
     const pdfMap = { weekly1: null, weekly2: null, monthly: null };
@@ -409,9 +409,12 @@ export default function ReportEdit() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
-                { type: 'homework', label: '숙제 사진' },
-                { type: 'test',     label: '테스트 사진' },
-                { type: 'activity', label: '학습/활동 사진' },
+                { type: 'homework',  label: '숙제 사진 1' },
+                { type: 'homework2', label: '숙제 사진 2' },
+                { type: 'test',      label: '테스트 사진 1' },
+                { type: 'test2',     label: '테스트 사진 2' },
+                { type: 'activity',  label: '학습/활동 사진 1' },
+                { type: 'activity2', label: '학습/활동 사진 2' },
               ].map(({ type, label }) => (
                 <PhotoUpload key={type} reportId={data.id} photoType={type}
                   existingFilename={photos[type]} consentPhoto={!!data.consent_photo}
