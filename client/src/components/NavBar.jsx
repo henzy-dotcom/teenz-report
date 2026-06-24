@@ -9,6 +9,7 @@ export default function NavBar() {
     { to: '/periods',       label: '리포트 회차', end: false },
     { to: '/students',      label: '학생 관리',   end: false },
     { to: '/admin/consult', label: '신규생 상담', end: false },
+    { to: '/kakao-templates', label: '카톡 템플릿', end: false },
   ];
 
   return (

@@ -156,6 +156,27 @@ db.exec(`
   );
 `);
 
+// 카카오톡 메시지 템플릿
+db.exec(`
+  CREATE TABLE IF NOT EXISTS kakao_templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    sort_order INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+const existingTemplates = db.prepare('SELECT COUNT(*) as c FROM kakao_templates').get();
+if (existingTemplates.c === 0) {
+  const ins = db.prepare('INSERT INTO kakao_templates (title, content, sort_order) VALUES (?, ?, ?)');
+  ins.run('📚 교재 안내', '안녕하세요! 링키영어 진해남문점입니다 😊\n이번 달 사용할 교재 안내드립니다.\n\n📖 교재명:\n💰 교재비:\n\n궁금하신 점은 편하게 연락 주세요!', 0);
+  ins.run('🏫 첫 방문 안내', '안녕하세요! 링키영어 진해남문점입니다 😊\n첫 수업 안내드립니다.\n\n📅 수업 시작일:\n⏰ 수업 시간:\n📍 위치: 진해구 남문동\n\n첫 날 교재와 필기도구 챙겨오시면 됩니다!\n궁금하신 점 편하게 연락 주세요 😊', 1);
+  ins.run('📊 리포트 발송', '안녕하세요! 링키영어 진해남문점 Ms. Henzy입니다 😊\n이번 달 학습 리포트를 보내드립니다.\n\n아래 링크에서 확인하실 수 있습니다 👇\n\n[링크]\n\n궁금하신 점은 편하게 문의 주세요!', 2);
+  console.log('✅ 카카오톡 템플릿 기본 데이터 삽입 완료');
+}
+
 // 기본 답변이 없으면 초기 데이터 삽입
 const existingAnswers = db.prepare('SELECT COUNT(*) as c FROM chat_answers').get();
 if (existingAnswers.c === 0) {

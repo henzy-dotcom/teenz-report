@@ -23,6 +23,7 @@ app.use('/api/upload', require('./routes/uploads')(db));
 app.use('/api/public', require('./routes/public')(db));
 app.use('/api/consult', require('./routes/consult')(db));
 app.use('/api/admin/consult', require('./routes/adminConsult')(db));
+app.use('/api/kakao-templates', require('./routes/kakaoTemplates')(db));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
