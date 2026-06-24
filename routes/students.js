@@ -28,22 +28,22 @@ module.exports = ({ db, makeShareCode }) => {
 
     const results = [];
     try {
-      const bulkInsert = db.transaction(() => {
-        for (const s of students) {
-          if (!s.name || !s.name.trim()) continue;
-          const share_token = uuidv4().replace(/-/g, '');
-          const share_code = makeShareCode(db);
-          const r = insert.run(
-            s.name.trim(), s.grade || '', s.class_subject || '', s.teacher || '',
-            s.parent_phone || '', s.consent_photo !== false ? 1 : 0,
-            s.status || 'active', share_token, share_code
-          );
-          results.push(db.prepare('SELECT * FROM students WHERE id = ?').get(r.lastInsertRowid));
-        }
-      });
-      bulkInsert();
+      db.exec('BEGIN');
+      for (const s of students) {
+        if (!s.name || !s.name.trim()) continue;
+        const share_token = uuidv4().replace(/-/g, '');
+        const share_code = makeShareCode(db);
+        const r = insert.run(
+          s.name.trim(), s.grade || '', s.class_subject || '', s.teacher || '',
+          s.parent_phone || '', s.consent_photo !== false ? 1 : 0,
+          s.status || 'active', share_token, share_code
+        );
+        results.push(db.prepare('SELECT * FROM students WHERE id = ?').get(r.lastInsertRowid));
+      }
+      db.exec('COMMIT');
       res.status(201).json({ count: results.length, students: results });
     } catch (e) {
+      try { db.exec('ROLLBACK'); } catch(_) {}
       console.error('bulk insert error:', e.message);
       res.status(500).json({ error: e.message });
     }
