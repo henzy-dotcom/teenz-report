@@ -86,6 +86,13 @@ module.exports = ({ db, makeShareCode }) => {
     res.json(db.prepare('SELECT * FROM students WHERE id = ?').get(req.params.id));
   });
 
+  router.delete('/:id', (req, res) => {
+    const student = db.prepare('SELECT * FROM students WHERE id = ?').get(req.params.id);
+    if (!student) return res.status(404).json({ error: '학생을 찾을 수 없습니다.' });
+    db.prepare('DELETE FROM students WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+  });
+
   router.post('/:id/regenerate-token', (req, res) => {
     const student = db.prepare('SELECT * FROM students WHERE id = ?').get(req.params.id);
     if (!student) return res.status(404).json({ error: '학생을 찾을 수 없습니다.' });

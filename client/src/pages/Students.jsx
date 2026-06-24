@@ -69,16 +69,28 @@ export default function Students() {
   }
 
   async function handleBulkSubmit() {
-    if (bulkPreview.length === 0) { showToast('등록할 학생이 없습니다.', 'error'); return; }
-    const res = await fetch('/api/students/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ students: bulkPreview }),
-    });
-    if (!res.ok) { const d = await res.json(); showToast(d.error || '등록 실패', 'error'); return; }
-    const d = await res.json();
-    showToast(`${d.count}명 등록 완료!`);
-    setShowBulk(false);
+    if (bulkPreview.length === 0) { showToast('등록할 학생이 없습니다. 이름을 한 줄에 한 명씩 입력하세요.', 'error'); return; }
+    try {
+      const res = await fetch('/api/students/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ students: bulkPreview }),
+      });
+      const d = await res.json();
+      if (!res.ok) { showToast(d.error || '등록 실패', 'error'); return; }
+      showToast(`${d.count}명 등록 완료!`);
+      setShowBulk(false);
+      load();
+    } catch (e) {
+      showToast('네트워크 오류가 발생했습니다.', 'error');
+    }
+  }
+
+  async function handleDelete(s) {
+    if (!window.confirm(`"${s.name}" 학생을 삭제할까요?\n관련 리포트와 데이터도 모두 삭제됩니다.`)) return;
+    const res = await fetch(`/api/students/${s.id}`, { method: 'DELETE' });
+    if (!res.ok) { showToast('삭제 실패', 'error'); return; }
+    showToast(`${s.name} 학생이 삭제되었습니다.`);
     load();
   }
 
@@ -180,6 +192,7 @@ export default function Students() {
                       {s.parent_phone && (
                         <a href={`sms:${s.parent_phone}`} className="btn btn-secondary btn-xs" title="문자">📱</a>
                       )}
+                      <button className="btn btn-xs" onClick={() => handleDelete(s)} title="삭제" style={{ background: '#FEE2E2', color: '#DC2626', border: '1px solid #FECACA' }}>🗑</button>
                     </div>
                   </td>
                 </tr>
