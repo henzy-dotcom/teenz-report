@@ -258,7 +258,7 @@ export default function ParentView() {
       .then(r => r.json())
       .then(d => {
         if (d.error) setError(d.error);
-        else setData(d);
+        else { setData(d); document.title = '링키영어 월말 리포트'; }
         setLoading(false);
       })
       .catch(() => {

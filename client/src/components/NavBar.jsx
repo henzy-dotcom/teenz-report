@@ -46,10 +46,10 @@ export default function NavBar() {
         }}>T</div>
         <div>
           <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--color-deep-navy)', lineHeight: 1.2 }}>
-            TEENZ
+            HENZY
           </div>
           <div style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 400, lineHeight: 1 }}>
-            리포트 관리
+            어드민
           </div>
         </div>
       </div>
