@@ -3,17 +3,19 @@ import { ToastContext } from '../App.jsx';
 
 function Counter({ value, onChange, color }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
       <button onClick={() => onChange(Math.max(0, value - 1))} style={{
-        width: 28, height: 28, borderRadius: 8, border: '1.5px solid #E5E7EB',
-        background: '#F9FAFB', cursor: 'pointer', fontSize: 16, fontWeight: 700,
+        width: 26, height: 26, borderRadius: 6, border: '1.5px solid #E5E7EB',
+        background: '#F9FAFB', cursor: 'pointer', fontSize: 15, fontWeight: 700,
         display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
+        flexShrink: 0,
       }}>−</button>
-      <span style={{ minWidth: 24, textAlign: 'center', fontWeight: 700, fontSize: 16, color }}>{value}</span>
+      <span style={{ width: 22, textAlign: 'center', fontWeight: 800, fontSize: 15, color }}>{value}</span>
       <button onClick={() => onChange(value + 1)} style={{
-        width: 28, height: 28, borderRadius: 8, border: '1.5px solid #E5E7EB',
-        background: '#F9FAFB', cursor: 'pointer', fontSize: 16, fontWeight: 700,
+        width: 26, height: 26, borderRadius: 6, border: '1.5px solid #E5E7EB',
+        background: '#F9FAFB', cursor: 'pointer', fontSize: 15, fontWeight: 700,
         display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
+        flexShrink: 0,
       }}>+</button>
     </div>
   );
@@ -52,6 +54,14 @@ export default function Attendance() {
     return acc;
   }, {});
 
+  const thStyle = {
+    padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#9CA3AF',
+    textAlign: 'center', whiteSpace: 'nowrap', borderBottom: '1px solid #F3F4F6',
+  };
+  const tdStyle = {
+    padding: '12px 12px', textAlign: 'center', borderBottom: '1px solid #F3F4F6',
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -77,43 +87,48 @@ export default function Attendance() {
         ))}
       </div>
 
-      {/* 학생 목록 */}
+      {/* 반별 테이블 */}
       {Object.entries(grouped).map(([cls, students]) => (
         <div key={cls} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 10px rgba(43,54,96,0.07)', marginBottom: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '12px 18px', background: '#2B3660', color: 'white', fontWeight: 700, fontSize: 13 }}>
+          <div style={{ padding: '11px 18px', background: '#2B3660', color: 'white', fontWeight: 700, fontSize: 13 }}>
             {cls}
           </div>
-          <div>
-            {students.map((s, i) => {
-              const unmade = Math.max(0, s.absent - s.makeup);
-              return (
-                <div key={s.id} style={{
-                  display: 'flex', alignItems: 'center', padding: '14px 18px',
-                  borderBottom: i < students.length - 1 ? '1px solid #F3F4F6' : 'none',
-                  gap: 12,
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: '#1C1C1E' }}>{s.name}</div>
-                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{s.grade}</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: '#DC2626', fontWeight: 600, marginBottom: 4 }}>결석</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#F8F9FB' }}>
+                <th style={{ ...thStyle, textAlign: 'left', paddingLeft: 18, width: '40%' }}>이름</th>
+                <th style={thStyle}>결석</th>
+                <th style={thStyle}>보충</th>
+                <th style={thStyle}>미보충</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s, i) => {
+                const unmade = Math.max(0, s.absent - s.makeup);
+                const isLast = i === students.length - 1;
+                return (
+                  <tr key={s.id} style={{ background: unmade > 0 ? '#FFFBEB' : '#fff' }}>
+                    <td style={{ ...tdStyle, textAlign: 'left', paddingLeft: 18, borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: '#1C1C1E' }}>{s.name}</div>
+                      {s.grade && <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{s.grade}</div>}
+                    </td>
+                    <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
                       <Counter value={s.absent} color="#DC2626" onChange={v => update(s.id, v, s.makeup)} />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: '#059669', fontWeight: 600, marginBottom: 4 }}>보충</div>
+                    </td>
+                    <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
                       <Counter value={s.makeup} color="#059669" onChange={v => update(s.id, s.absent, v)} />
-                    </div>
-                    <div style={{ textAlign: 'center', minWidth: 40 }}>
-                      <div style={{ fontSize: 10, color: '#D97706', fontWeight: 600, marginBottom: 4 }}>미보충</div>
-                      <div style={{ fontWeight: 800, fontSize: 16, color: unmade > 0 ? '#D97706' : '#D1D5DB' }}>{unmade}</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    </td>
+                    <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid #F3F4F6' }}>
+                      <span style={{
+                        fontWeight: 800, fontSize: 16,
+                        color: unmade > 0 ? '#D97706' : '#D1D5DB',
+                      }}>{unmade}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ))}
 
