@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "concurrently \"nodemon server.js\" \"cd client && npm run dev\"",
     "dev:server": "nodemon server.js",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm install && npm run build",
     "seed": "node db/seed.js",
     "setup": "node db/setup.js && node db/seed.js"
   },
