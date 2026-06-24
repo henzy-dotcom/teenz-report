@@ -447,6 +447,9 @@ export default function ParentView() {
                   ? <PDFPanel key={type} pdf={pdfMap[type]} />
                   : <PDFEmpty  key={type} type={type} />
               )}
+              <div style={{ marginTop: 10, padding: '8px 12px', background: '#F9FAFB', borderRadius: 8, fontSize: 11, color: '#AAA', lineHeight: 1.6 }}>
+                📌 리포트에 표시된 학습 일수는 실제 수업 시간이 아닌, 교재 학습 후 프로그램 진행 시간입니다.
+              </div>
             </div>
 
             {/* ③  선생님 코멘트 */}
