@@ -105,6 +105,74 @@ if (withoutCode.length > 0) {
   console.log(`✅ ${withoutCode.length}명에게 공유 코드 생성 완료`);
 }
 
+// ─── 월간 운영 리포트 ───
+db.exec(`
+  CREATE TABLE IF NOT EXISTS monthly_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    year_month TEXT UNIQUE NOT NULL,
+    status TEXT DEFAULT '작성중',
+    enrolled_count INTEGER DEFAULT 0,
+    new_count INTEGER DEFAULT 0,
+    withdrawn_count INTEGER DEFAULT 0,
+    total_revenue INTEGER DEFAULT 0,
+    textbook_fee INTEGER DEFAULT 0,
+    unpaid_memo TEXT DEFAULT '',
+    refund_memo TEXT DEFAULT '',
+    settlement_memo TEXT DEFAULT '',
+    reflection_good TEXT DEFAULT '',
+    reflection_bad TEXT DEFAULT '',
+    reflection_next TEXT DEFAULT '',
+    reflection_memo TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE TABLE IF NOT EXISTS mr_new_students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    grade TEXT DEFAULT '',
+    class_subject TEXT DEFAULT '',
+    note TEXT DEFAULT '',
+    FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS mr_withdrawn_students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    grade TEXT DEFAULT '',
+    reason TEXT DEFAULT '',
+    note TEXT DEFAULT '',
+    FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS mr_expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    amount INTEGER DEFAULT 0,
+    memo TEXT DEFAULT '',
+    FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS mr_checklist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    item_key TEXT NOT NULL,
+    checked INTEGER DEFAULT 0,
+    memo TEXT DEFAULT '',
+    UNIQUE(report_id, item_key),
+    FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
+  );
+  CREATE TABLE IF NOT EXISTS mr_promotions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    target INTEGER DEFAULT 0,
+    actual INTEGER DEFAULT 0,
+    memo TEXT DEFAULT '',
+    sort_order INTEGER DEFAULT 0,
+    FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
+  );
+`);
+
 // ─── 출결 테이블 ───
 db.exec(`
   CREATE TABLE IF NOT EXISTS attendance (

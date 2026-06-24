@@ -25,6 +25,7 @@ app.use('/api/consult', require('./routes/consult')(db));
 app.use('/api/admin/consult', require('./routes/adminConsult')(db));
 app.use('/api/kakao-templates', require('./routes/kakaoTemplates')(db));
 app.use('/api/attendance', require('./routes/attendance')(db));
+app.use('/api/monthly-reports', require('./routes/monthlyReport')(db));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 

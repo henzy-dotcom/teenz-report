@@ -11,6 +11,7 @@ export default function NavBar() {
     { to: '/admin/consult', label: '신규생 상담', end: false },
     { to: '/kakao-templates', label: '카톡 템플릿', end: false },
     { to: '/attendance',      label: '출결 관리',   end: false },
+    { to: '/monthly-reports', label: '월간 리포트', end: false },
   ];
 
   return (

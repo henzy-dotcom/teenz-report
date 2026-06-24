@@ -23,7 +23,7 @@ export default function Attendance() {
   const now = new Date();
   const [yearMonth, setYearMonth] = useState(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
   const [rows, setRows] = useState([]);
-  const { showToast } = useContext(ToastContext);
+  const showToast = useContext(ToastContext);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/attendance/${yearMonth}`);

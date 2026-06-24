@@ -7,7 +7,7 @@ export default function KakaoTemplates() {
   const [editForm, setEditForm] = useState({ title: '', content: '' });
   const [showNew, setShowNew] = useState(false);
   const [newForm, setNewForm] = useState({ title: '', content: '' });
-  const { showToast } = useContext(ToastContext);
+  const showToast = useContext(ToastContext);
 
   async function load() {
     const res = await fetch('/api/kakao-templates');
