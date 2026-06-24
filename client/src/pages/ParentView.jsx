@@ -26,9 +26,12 @@ const PDF_ICON = {
 };
 const PDF_ORDER = ['weekly1', 'weekly2', 'monthly'];
 const PHOTO_LABEL = {
-  homework: { text: '숙제',      emoji: '📝' },
-  test:     { text: '테스트',    emoji: '📋' },
-  activity: { text: '학습/활동', emoji: '🎯' },
+  homework:  { text: '숙제',      emoji: '📝' },
+  homework2: { text: '숙제',      emoji: '📝' },
+  test:      { text: '테스트',    emoji: '📋' },
+  test2:     { text: '테스트',    emoji: '📋' },
+  activity:  { text: '학습/활동', emoji: '🎯' },
+  activity2: { text: '학습/활동', emoji: '🎯' },
 };
 
 /* ─── 리포트 보기 패널 ─── */
@@ -448,7 +451,7 @@ export default function ParentView() {
                   : <PDFEmpty  key={type} type={type} />
               )}
               <div style={{ marginTop: 10, padding: '8px 12px', background: '#F9FAFB', borderRadius: 8, fontSize: 11, color: '#AAA', lineHeight: 1.6 }}>
-                📌 리포트에 표시된 학습 일수는 실제 수업 시간이 아닌, 교재 학습 후 프로그램 진행 시간입니다.
+                📌 학습 일수는 수업 시간이 아닌 프로그램 진행 시간입니다.
               </div>
             </div>
 
