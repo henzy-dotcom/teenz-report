@@ -366,14 +366,16 @@ export default function MonthlyReportDetail() {
             <button onClick={addExpense} style={S.btn('#F3F4F6', '#374151')}>+ 지출 추가</button>
           </div>
           {(report.expenses || []).map(e => (
-            <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 1fr auto', gap: 6, marginBottom: 6, alignItems: 'center' }}>
-              <input style={{ ...S.numInput, fontSize: 13 }} value={e.name} placeholder="지출명"
-                onChange={ev => updateExpense(e.id, 'name', ev.target.value)} />
-              <input type="number" style={{ ...S.numInput, fontSize: 13 }} value={e.amount || 0} placeholder="금액"
-                onChange={ev => updateExpense(e.id, 'amount', parseInt(ev.target.value) || 0)} />
-              <input style={{ ...S.numInput, fontSize: 13 }} value={e.memo} placeholder="메모"
+            <div key={e.id} style={{ background: '#F8F9FB', borderRadius: 10, padding: '10px 12px', marginBottom: 8 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                <input style={{ ...S.numInput, fontSize: 13, flex: 2 }} value={e.name} placeholder="지출명"
+                  onChange={ev => updateExpense(e.id, 'name', ev.target.value)} />
+                <input type="number" style={{ ...S.numInput, fontSize: 13, flex: 1 }} value={e.amount || 0} placeholder="금액"
+                  onChange={ev => updateExpense(e.id, 'amount', parseInt(ev.target.value) || 0)} />
+                <button onClick={() => deleteExpense(e.id)} style={{ ...S.btn('#FEE2E2', '#DC2626'), padding: '6px 10px', flexShrink: 0 }}>🗑</button>
+              </div>
+              <input style={{ ...S.numInput, fontSize: 12 }} value={e.memo} placeholder="메모 (선택)"
                 onChange={ev => updateExpense(e.id, 'memo', ev.target.value)} />
-              <button onClick={() => deleteExpense(e.id)} style={{ ...S.btn('#FEE2E2', '#DC2626'), padding: '6px 10px' }}>🗑</button>
             </div>
           ))}
         </div>

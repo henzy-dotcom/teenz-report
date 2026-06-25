@@ -477,11 +477,22 @@ textarea.input { resize: vertical; min-height: 80px; }
 .empty-state p { font-size: 14px; }
 
 /* --- 반응형 --- */
+
+/* 데스크탑 전용 / 모바일 전용 토글 */
+.nav-mobile { display: none; }
+.nav-desktop { display: flex; }
+
 @media (max-width: 768px) {
-  .page-container { padding: var(--gap-md); }
+  .nav-mobile  { display: flex; }
+  .nav-desktop { display: none !important; }
+
+  .page-container { padding: 16px 14px; }
   .form-row { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .data-table { font-size: 12px; }
   .data-table th, .data-table td { padding: 8px 10px; }
   .modal { padding: var(--gap-lg); }
+
+  /* 테이블 가로 스크롤 */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
