@@ -73,7 +73,7 @@ module.exports = (db) => {
   router.post('/photo/:reportId/:photoType', upload.single('file'), (req, res) => {
     try {
       const { reportId, photoType } = req.params;
-      if (!['homework', 'test', 'activity', 'homework2', 'test2', 'activity2'].includes(photoType)) {
+      if (!['homework', 'test', 'activity', 'homework2', 'test2', 'activity2', 'homework3', 'test3', 'activity3'].includes(photoType)) {
         return res.status(400).json({ error: '잘못된 사진 타입입니다.' });
       }
       if (!req.file) return res.status(400).json({ error: '파일이 없습니다.' });

@@ -23,8 +23,8 @@ const PDF_LABEL = {
 const PDF_ICON = {
   weekly1: '/쿼카얼굴3.png',
   weekly2: '/쿼카얼굴4.png',
-  weekly3: '/쿼카얼굴6.png',
-  monthly: '/쿼카얼굴5.png',
+  weekly3: '/쿼카얼굴5.png',
+  monthly: '/쿼카얼굴6.png',
 };
 const PDF_ORDER = ['weekly1', 'weekly2', 'weekly3', 'monthly'];
 const PHOTO_LABEL = {
