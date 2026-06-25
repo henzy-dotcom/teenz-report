@@ -470,51 +470,58 @@ export default function ParentView() {
             {/* ①  핵심 요약 */}
             {hasSummary && (
               <div style={{
-                background: 'linear-gradient(135deg, #1E2D5A 0%, #2B3F7A 100%)',
+                background: 'linear-gradient(135deg, #FFF0F4 0%, #F0FAFA 100%)',
                 borderRadius: 20,
                 padding: '20px 18px', marginBottom: 14,
-                boxShadow: '0 8px 24px rgba(30,45,90,0.25)',
+                boxShadow: '0 4px 16px rgba(240,84,122,0.1)',
+                border: '1px solid rgba(240,84,122,0.12)',
               }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#B03A56', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
                   📊 이번 달 요약
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                   {/* 숙제 */}
                   <div style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    border: `1.5px solid ${hw?.border ? hw.border + '60' : 'rgba(255,255,255,0.15)'}`,
-                    borderRadius: 14, padding: '14px 8px', textAlign: 'center',
-                    backdropFilter: 'blur(4px)',
+                    background: '#fff',
+                    borderRadius: 14, overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(240,84,122,0.1)',
                   }}>
-                    <span style={{ fontSize: 24, display: 'block', marginBottom: 6, lineHeight: 1 }}>{hw?.emoji || '—'}</span>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>숙제</span>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: hw ? '#fff' : 'rgba(255,255,255,0.4)' }}>{hw?.text || '—'}</div>
-                    {latest.homework_comment && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>{latest.homework_comment}</div>}
+                    <div style={{ height: 4, background: '#F0547A', borderRadius: '14px 14px 0 0' }} />
+                    <div style={{ padding: '12px 8px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 26, display: 'block', marginBottom: 5, lineHeight: 1 }}>{hw?.emoji || '—'}</span>
+                      <span style={{ fontSize: 10, color: '#F0547A', fontWeight: 700, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>숙제</span>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: hw?.color || '#999' }}>{hw?.text || '—'}</div>
+                      {latest.homework_comment && <div style={{ fontSize: 10, color: '#AAA', marginTop: 5, lineHeight: 1.4 }}>{latest.homework_comment}</div>}
+                    </div>
                   </div>
                   {/* 테스트 */}
                   <div style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1.5px solid rgba(120,180,255,0.3)',
-                    borderRadius: 14, padding: '14px 8px', textAlign: 'center',
-                    backdropFilter: 'blur(4px)',
+                    background: '#fff',
+                    borderRadius: 14, overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(75,191,176,0.12)',
                   }}>
-                    <span style={{ fontSize: 24, display: 'block', marginBottom: 6, lineHeight: 1 }}>📝</span>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>단어 테스트</span>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#A8D4FF', lineHeight: 1.4 }}>
-                      {latest.test_result ? latest.test_result.split('\n').map((line, i) => <div key={i}>{line}</div>) : '—'}
+                    <div style={{ height: 4, background: '#4BBFB0', borderRadius: '14px 14px 0 0' }} />
+                    <div style={{ padding: '12px 8px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 26, display: 'block', marginBottom: 5, lineHeight: 1 }}>📝</span>
+                      <span style={{ fontSize: 10, color: '#3AA090', fontWeight: 700, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>단어 테스트</span>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#2B6B62', lineHeight: 1.4 }}>
+                        {latest.test_result ? latest.test_result.split('\n').map((line, i) => <div key={i}>{line}</div>) : '—'}
+                      </div>
                     </div>
                   </div>
                   {/* 태도 */}
                   <div style={{
-                    background: 'rgba(255,255,255,0.1)',
-                    border: '1.5px solid rgba(255,255,255,0.15)',
-                    borderRadius: 14, padding: '14px 8px', textAlign: 'center',
-                    backdropFilter: 'blur(4px)',
+                    background: '#fff',
+                    borderRadius: 14, overflow: 'hidden',
+                    boxShadow: '0 2px 8px rgba(150,100,200,0.1)',
                   }}>
-                    <span style={{ fontSize: 24, display: 'block', marginBottom: 6, lineHeight: 1 }}>{att?.emoji || '—'}</span>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>수업 태도</span>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: att ? '#fff' : 'rgba(255,255,255,0.4)' }}>{att?.text || '—'}</div>
-                    {latest.attitude_comment && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>{latest.attitude_comment}</div>}
+                    <div style={{ height: 4, background: 'linear-gradient(90deg, #F0547A, #4BBFB0)', borderRadius: '14px 14px 0 0' }} />
+                    <div style={{ padding: '12px 8px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 26, display: 'block', marginBottom: 5, lineHeight: 1 }}>{att?.emoji || '—'}</span>
+                      <span style={{ fontSize: 10, color: '#9B6BB5', fontWeight: 700, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>수업 태도</span>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: att?.color || '#999' }}>{att?.text || '—'}</div>
+                      {latest.attitude_comment && <div style={{ fontSize: 10, color: '#AAA', marginTop: 5, lineHeight: 1.4 }}>{latest.attitude_comment}</div>}
+                    </div>
                   </div>
                 </div>
               </div>
