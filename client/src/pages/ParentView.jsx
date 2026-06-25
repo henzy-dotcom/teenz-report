@@ -248,6 +248,8 @@ export default function ParentView() {
   const [loading, setLoading] = useState(true);
   const [consultOpen, setConsultOpen] = useState(false);
 
+  useEffect(() => { document.title = '링키영어 월말 리포트'; }, []);
+
   useEffect(() => {
     // shareCode(짧은 코드) 또는 token(긴 UUID) 둘 다 지원
     const apiPath = shareCode
