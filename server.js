@@ -40,6 +40,33 @@ app.get('/api/config', (req, res) => {
 const clientBuild = path.join(__dirname, 'client', 'dist');
 if (fs.existsSync(clientBuild)) {
   app.use(express.static(clientBuild));
+
+  // 카카오톡 OG 태그 — 학부모 리포트 링크 미리보기
+  app.get('/r/:shareCode', (req, res) => {
+    const code = req.params.shareCode.toUpperCase();
+    const student = db.prepare(
+      'SELECT s.name FROM students s WHERE s.share_code = ?'
+    ).get(code);
+
+    const title = student
+      ? `${student.name} 학습 리포트 | 링키영어`
+      : '링키영어 월말 리포트';
+    const description = '링키영어 진해남문점 Ms.Henzy가 보내드리는 월말 학습 리포트입니다.';
+    const baseUrl = process.env.PUBLIC_BASE_URL || '';
+    const url = `${baseUrl}/r/${code}`;
+
+    let html = fs.readFileSync(path.join(clientBuild, 'index.html'), 'utf8');
+    const ogTags = `
+    <title>${title}</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:url" content="${url}" />
+    <meta name="description" content="${description}" />`;
+    html = html.replace('</head>', `${ogTags}\n  </head>`);
+    res.send(html);
+  });
+
   app.get('*', (req, res) => {
     res.sendFile(path.join(clientBuild, 'index.html'));
   });
