@@ -79,7 +79,7 @@ function AddModal({ onClose, onSaved }) {
           <div>
             <label style={lbl}>상담 유형</label>
             <select style={inp} value={form.consult_type} onChange={e => set('consult_type', e.target.value)}>
-              {['방문상담','전화상담','레벨테스트','바로 등록 문의'].map(s => <option key={s}>{s}</option>)}
+              {['방문상담','전화상담','레벨테스트','체험수업','바로 등록 문의'].map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div>
@@ -242,7 +242,7 @@ export default function ConsultAdmin() {
         <select value={filter.consult_type} onChange={e => setFilter(f => ({ ...f, consult_type: e.target.value }))}
           style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13 }}>
           <option value="">유형 전체</option>
-          {['방문상담','전화상담','레벨테스트','바로 등록 문의'].map(s => <option key={s} value={s}>{s}</option>)}
+          {['방문상담','전화상담','레벨테스트','체험수업','바로 등록 문의'].map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={filter.source} onChange={e => setFilter(f => ({ ...f, source: e.target.value }))}
           style={{ padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13 }}>
