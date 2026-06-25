@@ -42,8 +42,24 @@ export default function KakaoTemplates() {
   }
 
   function copyText(content) {
-    navigator.clipboard.writeText(content);
-    showToast('복사됐어요! 카톡에 붙여넣기 하세요 😊');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(content)
+        .then(() => showToast('복사됐어요! 카톡에 붙여넣기 하세요 😊'))
+        .catch(() => fallbackCopy(content));
+    } else {
+      fallbackCopy(content);
+    }
+  }
+
+  function fallbackCopy(content) {
+    const ta = document.createElement('textarea');
+    ta.value = content;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); showToast('복사됐어요! 카톡에 붙여넣기 하세요 😊'); }
+    catch { showToast('직접 길게 눌러서 복사해주세요', 'error'); }
+    document.body.removeChild(ta);
   }
 
   return (
@@ -101,7 +117,7 @@ export default function KakaoTemplates() {
       )}
 
       {/* 카드 그리드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 }}>
         {templates.map(t => (
           <div key={t.id} style={{
             background: '#fff', borderRadius: 16,
