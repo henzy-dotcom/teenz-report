@@ -515,10 +515,10 @@ export default function ParentView() {
                     borderRadius: 14, overflow: 'hidden',
                     boxShadow: '0 2px 8px rgba(150,100,200,0.1)',
                   }}>
-                    <div style={{ height: 4, background: 'linear-gradient(90deg, #F0547A, #4BBFB0)', borderRadius: '14px 14px 0 0' }} />
+                    <div style={{ height: 4, background: '#F0547A', borderRadius: '14px 14px 0 0' }} />
                     <div style={{ padding: '12px 8px', textAlign: 'center' }}>
                       <span style={{ fontSize: 26, display: 'block', marginBottom: 5, lineHeight: 1 }}>{att?.emoji || '—'}</span>
-                      <span style={{ fontSize: 10, color: '#9B6BB5', fontWeight: 700, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>수업 태도</span>
+                      <span style={{ fontSize: 10, color: '#F0547A', fontWeight: 700, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>수업 태도</span>
                       <div style={{ fontSize: 12, fontWeight: 800, color: att?.color || '#999' }}>{att?.text || '—'}</div>
                       {latest.attitude_comment && <div style={{ fontSize: 10, color: '#AAA', marginTop: 5, lineHeight: 1.4 }}>{latest.attitude_comment}</div>}
                     </div>
