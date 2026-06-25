@@ -24,6 +24,7 @@ app.use('/api/public', require('./routes/public')(db));
 app.use('/api/consult', require('./routes/consult')(db));
 app.use('/api/admin/consult', require('./routes/adminConsult')(db));
 app.use('/api/kakao-templates', require('./routes/kakaoTemplates')(db));
+app.use('/api/teacher-comments', require('./routes/teacherComments')(db));
 app.use('/api/attendance', require('./routes/attendance')(db));
 app.use('/api/monthly-reports', require('./routes/monthlyReport')(db));
 

@@ -13,6 +13,7 @@ export default function NavBar() {
     { to: '/monthly-reports', label: '월간 리포트', end: true  },
     { to: '/monthly-reports/stats', label: '운영 그래프', end: false },
     { to: '/admin/consult', label: '신규생 상담', end: false },
+    { to: '/teacher-comments', label: '선생님 한마디', end: false },
     { to: '/kakao-templates', label: '카톡 템플릿', end: false },
   ];
 
