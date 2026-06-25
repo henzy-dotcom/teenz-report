@@ -148,36 +148,43 @@ export default function TeacherComments() {
         </div>
       )}
 
-      {/* 코멘트 목록 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* 카드 그리드 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 14 }}>
         {filtered.map((c, idx) => (
           <div key={c.id} style={{
-            background: '#fff', borderRadius: 14,
-            boxShadow: '0 2px 8px rgba(43,54,96,0.07)',
+            background: '#fff', borderRadius: 16,
+            boxShadow: '0 2px 10px rgba(43,54,96,0.08)',
             border: '1px solid #F0EEF8',
+            display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
           }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px' }}>
-              <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600, minWidth: 20, paddingTop: 2 }}>
+            {/* 번호 + 내용 */}
+            <div style={{ padding: '16px 16px 12px', flex: 1 }}>
+              <span style={{
+                display: 'inline-block', fontSize: 10, fontWeight: 700,
+                color: '#F0547A', background: '#FFF0F4', borderRadius: 20,
+                padding: '2px 8px', marginBottom: 10,
+              }}>
                 {idx + 1}
               </span>
-              <p style={{ flex: 1, margin: 0, fontSize: 14, color: '#1C1C1E', lineHeight: 1.7, wordBreak: 'keep-all' }}>
+              <p style={{ margin: 0, fontSize: 13, color: '#1C1C1E', lineHeight: 1.8, wordBreak: 'keep-all' }}>
                 {c.content}
               </p>
             </div>
-            <div style={{ padding: '0 12px 12px', display: 'flex', gap: 6 }}>
+            {/* 버튼 */}
+            <div style={{ padding: '10px 12px', display: 'flex', gap: 6, borderTop: '1px solid #F3F4F6' }}>
               <button onClick={() => copyText(c.content)} style={{
-                flex: 1, padding: '9px', background: '#F0547A', color: '#fff',
+                flex: 1, padding: '10px', background: '#F0547A', color: '#fff',
                 border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13,
                 cursor: 'pointer',
               }}>📋 복사</button>
               <button onClick={() => startEdit(c)} style={{
-                padding: '9px 12px', background: '#F3F4F6', color: '#374151',
+                padding: '10px 12px', background: '#F3F4F6', color: '#374151',
                 border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 12,
                 cursor: 'pointer',
               }}>수정</button>
               <button onClick={() => handleDelete(c.id)} style={{
-                padding: '9px 12px', background: '#FEE2E2', color: '#DC2626',
+                padding: '10px 12px', background: '#FEE2E2', color: '#DC2626',
                 border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 12,
                 cursor: 'pointer',
               }}>🗑</button>
