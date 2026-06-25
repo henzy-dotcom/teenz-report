@@ -114,27 +114,74 @@ function PDFPanel({ pdf }) {
 }
 
 /* ─── 사진 슬라이더 ─── */
+function PhotoLightbox({ src, alt, onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.92)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute', top: 16, right: 16,
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.15)', border: 'none',
+          color: '#fff', fontSize: 22, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >✕</button>
+      <img
+        src={src} alt={alt}
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '95vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
+      />
+    </div>
+  );
+}
+
 function PhotoSlider({ photos, label, emoji }) {
   const [idx, setIdx] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   if (!photos || photos.length === 0) return null;
   const current = photos[idx];
+  const src = `/uploads/photos/${current.filename}`;
   return (
-    <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(43,54,96,0.1)', marginBottom: 12 }}>
-      <div style={{ padding: '9px 14px', background: '#2B3660', fontSize: 13, color: 'white', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span>{emoji} {label}</span>
-        {photos.length > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={() => setIdx(i => (i - 1 + photos.length) % photos.length)}
-              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{idx + 1} / {photos.length}</span>
-            <button onClick={() => setIdx(i => (i + 1) % photos.length)}
-              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
-          </div>
-        )}
+    <>
+      {lightbox && <PhotoLightbox src={src} alt={label} onClose={() => setLightbox(false)} />}
+      <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(43,54,96,0.1)', marginBottom: 12 }}>
+        <div style={{ padding: '9px 14px', background: '#2B3660', fontSize: 13, color: 'white', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>{emoji} {label}</span>
+          {photos.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={() => setIdx(i => (i - 1 + photos.length) % photos.length)}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>{idx + 1} / {photos.length}</span>
+              <button onClick={() => setIdx(i => (i + 1) % photos.length)}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 6, width: 28, height: 28, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'relative' }}>
+          <img src={src} alt={label} loading="lazy"
+            style={{ width: '100%', display: 'block', maxHeight: 360, objectFit: 'cover' }} />
+          <button
+            onClick={() => setLightbox(true)}
+            style={{
+              position: 'absolute', bottom: 10, right: 10,
+              width: 34, height: 34, borderRadius: 8,
+              background: 'rgba(0,0,0,0.5)', border: 'none',
+              color: '#fff', fontSize: 16, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+            title="크게 보기"
+          >⤢</button>
+        </div>
       </div>
-      <img src={`/uploads/photos/${current.filename}`} alt={label} loading="lazy"
-        style={{ width: '100%', display: 'block', maxHeight: 360, objectFit: 'cover' }} />
-    </div>
+    </>
   );
 }
 
