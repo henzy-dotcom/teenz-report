@@ -22,6 +22,7 @@ const ATTITUDE_OPTIONS = [
 const PDF_TYPES = [
   { type: 'weekly1', label: '주간 AI 리포트 1' },
   { type: 'weekly2', label: '주간 AI 리포트 2' },
+  { type: 'weekly3', label: '주간 AI 리포트 3' },
   { type: 'monthly', label: '월간 AI 리포트' },
 ];
 
@@ -156,8 +157,8 @@ export default function ReportEdit() {
     comment: '', homework_status: '', homework_comment: '', test_result: '',
     attitude: '', attitude_comment: '', improvement: '', published: false, completed: false, sent: false,
   });
-  const [photos, setPhotos] = useState({ homework: null, test: null, activity: null, homework2: null, test2: null, activity2: null });
-  const [pdfs, setPdfs]     = useState({ weekly1: null, weekly2: null, monthly: null });
+  const [photos, setPhotos] = useState({ homework: null, test: null, activity: null, homework2: null, test2: null, activity2: null, homework3: null, test3: null, activity3: null });
+  const [pdfs, setPdfs]     = useState({ weekly1: null, weekly2: null, weekly3: null, monthly: null });
 
   async function loadReport() {
     const [r, p] = await Promise.all([
@@ -173,10 +174,10 @@ export default function ReportEdit() {
       improvement: r.improvement || '', published: !!r.published,
       completed: !!r.completed, sent: !!r.sent,
     });
-    const photoMap = { homework: null, test: null, activity: null, homework2: null, test2: null, activity2: null };
+    const photoMap = { homework: null, test: null, activity: null, homework2: null, test2: null, activity2: null, homework3: null, test3: null, activity3: null };
     (r.photos || []).forEach(ph => { photoMap[ph.photo_type] = ph.filename; });
     setPhotos(photoMap);
-    const pdfMap = { weekly1: null, weekly2: null, monthly: null };
+    const pdfMap = { weekly1: null, weekly2: null, weekly3: null, monthly: null };
     (r.pdfs || []).forEach(pd => { pdfMap[pd.pdf_type] = pd; });
     setPdfs(pdfMap);
   }
@@ -411,10 +412,13 @@ export default function ReportEdit() {
               {[
                 { type: 'homework',  label: '숙제 사진 1' },
                 { type: 'homework2', label: '숙제 사진 2' },
+                { type: 'homework3', label: '숙제 사진 3' },
                 { type: 'test',      label: '테스트 사진 1' },
                 { type: 'test2',     label: '테스트 사진 2' },
+                { type: 'test3',     label: '테스트 사진 3' },
                 { type: 'activity',  label: '학습/활동 사진 1' },
                 { type: 'activity2', label: '학습/활동 사진 2' },
+                { type: 'activity3', label: '학습/활동 사진 3' },
               ].map(({ type, label }) => (
                 <PhotoUpload key={type} reportId={data.id} photoType={type}
                   existingFilename={photos[type]} consentPhoto={!!data.consent_photo}

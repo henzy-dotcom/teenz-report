@@ -17,21 +17,26 @@ const ATTITUDE = {
 const PDF_LABEL = {
   weekly1: '1주차 AI 리포트',
   weekly2: '2주차 AI 리포트',
+  weekly3: '3주차 AI 리포트',
   monthly: '월간 AI 리포트',
 };
 const PDF_ICON = {
   weekly1: '/쿼카얼굴3.png',
   weekly2: '/쿼카얼굴4.png',
+  weekly3: '/쿼카얼굴6.png',
   monthly: '/쿼카얼굴5.png',
 };
-const PDF_ORDER = ['weekly1', 'weekly2', 'monthly'];
+const PDF_ORDER = ['weekly1', 'weekly2', 'weekly3', 'monthly'];
 const PHOTO_LABEL = {
   homework:  { text: '숙제',      emoji: '📝' },
   homework2: { text: '숙제',      emoji: '📝' },
+  homework3: { text: '숙제',      emoji: '📝' },
   test:      { text: '테스트',    emoji: '📋' },
   test2:     { text: '테스트',    emoji: '📋' },
+  test3:     { text: '테스트',    emoji: '📋' },
   activity:  { text: '학습/활동', emoji: '🎯' },
   activity2: { text: '학습/활동', emoji: '🎯' },
+  activity3: { text: '학습/활동', emoji: '🎯' },
 };
 
 /* ─── 리포트 보기 패널 ─── */
@@ -465,43 +470,51 @@ export default function ParentView() {
             {/* ①  핵심 요약 */}
             {hasSummary && (
               <div style={{
-                background: 'white', borderRadius: 16,
+                background: 'linear-gradient(135deg, #1E2D5A 0%, #2B3F7A 100%)',
+                borderRadius: 20,
                 padding: '20px 18px', marginBottom: 14,
-                boxShadow: '0 2px 10px rgba(43,54,96,0.07)',
+                boxShadow: '0 8px 24px rgba(30,45,90,0.25)',
               }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#2B3660', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>
                   📊 이번 달 요약
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                   {/* 숙제 */}
                   <div style={{
-                    background: hw?.bg || '#F5F5F5',
-                    border: `1.5px solid ${hw?.border || 'transparent'}`,
-                    borderRadius: 12, padding: '12px 8px', textAlign: 'center',
+                    background: 'rgba(255,255,255,0.1)',
+                    border: `1.5px solid ${hw?.border ? hw.border + '60' : 'rgba(255,255,255,0.15)'}`,
+                    borderRadius: 14, padding: '14px 8px', textAlign: 'center',
+                    backdropFilter: 'blur(4px)',
                   }}>
-                    <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>{hw?.emoji || '—'}</span>
-                    <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>숙제</span>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: hw?.color || '#888' }}>{hw?.text || '—'}</div>
-                    {latest.homework_comment && <div style={{ fontSize: 10, color: '#BBB', marginTop: 5, lineHeight: 1.4 }}>{latest.homework_comment}</div>}
+                    <span style={{ fontSize: 24, display: 'block', marginBottom: 6, lineHeight: 1 }}>{hw?.emoji || '—'}</span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>숙제</span>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: hw ? '#fff' : 'rgba(255,255,255,0.4)' }}>{hw?.text || '—'}</div>
+                    {latest.homework_comment && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>{latest.homework_comment}</div>}
                   </div>
                   {/* 테스트 */}
-                  <div style={{ background: '#EEF6FF', border: '1.5px solid #C5DCEF', borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
-                    <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>📝</span>
-                    <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>단어 테스트</span>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#2B5CA0', lineHeight: 1.3 }}>
+                  <div style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1.5px solid rgba(120,180,255,0.3)',
+                    borderRadius: 14, padding: '14px 8px', textAlign: 'center',
+                    backdropFilter: 'blur(4px)',
+                  }}>
+                    <span style={{ fontSize: 24, display: 'block', marginBottom: 6, lineHeight: 1 }}>📝</span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>단어 테스트</span>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#A8D4FF', lineHeight: 1.4 }}>
                       {latest.test_result ? latest.test_result.split('\n').map((line, i) => <div key={i}>{line}</div>) : '—'}
                     </div>
                   </div>
                   {/* 태도 */}
                   <div style={{
-                    background: att?.bg || '#F5F5F5',
-                    border: '1.5px solid transparent',
-                    borderRadius: 12, padding: '12px 8px', textAlign: 'center',
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1.5px solid rgba(255,255,255,0.15)',
+                    borderRadius: 14, padding: '14px 8px', textAlign: 'center',
+                    backdropFilter: 'blur(4px)',
                   }}>
-                    <span style={{ fontSize: 22, display: 'block', marginBottom: 5, lineHeight: 1 }}>{att?.emoji || '—'}</span>
-                    <span style={{ fontSize: 10, color: '#888', fontWeight: 600, letterSpacing: '0.04em', display: 'block', marginBottom: 3 }}>수업 태도</span>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: att?.color || '#888' }}>{att?.text || '—'}</div>
-                    {latest.attitude_comment && <div style={{ fontSize: 10, color: '#BBB', marginTop: 5, lineHeight: 1.4 }}>{latest.attitude_comment}</div>}
+                    <span style={{ fontSize: 24, display: 'block', marginBottom: 6, lineHeight: 1 }}>{att?.emoji || '—'}</span>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>수업 태도</span>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: att ? '#fff' : 'rgba(255,255,255,0.4)' }}>{att?.text || '—'}</div>
+                    {latest.attitude_comment && <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 5, lineHeight: 1.4 }}>{latest.attitude_comment}</div>}
                   </div>
                 </div>
               </div>
@@ -562,7 +575,7 @@ export default function ParentView() {
                   📸 수업 사진
                 </div>
                 {['activity', 'homework', 'test'].map(base => {
-                  const group = photos.filter(p => p.photo_type === base || p.photo_type === base + '2');
+                  const group = photos.filter(p => p.photo_type === base || p.photo_type === base + '2' || p.photo_type === base + '3');
                   if (group.length === 0) return null;
                   const lbl = PHOTO_LABEL[base];
                   return <PhotoSlider key={base} photos={group} label={lbl.text} emoji={lbl.emoji} />;

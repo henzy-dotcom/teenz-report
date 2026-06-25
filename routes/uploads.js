@@ -27,7 +27,7 @@ module.exports = (db) => {
   router.post('/pdf/:reportId/:pdfType', upload.single('file'), (req, res) => {
     try {
       const { reportId, pdfType } = req.params;
-      if (!['weekly1', 'weekly2', 'monthly'].includes(pdfType)) {
+      if (!['weekly1', 'weekly2', 'weekly3', 'monthly'].includes(pdfType)) {
         return res.status(400).json({ error: '잘못된 PDF 타입입니다.' });
       }
       if (!req.file) return res.status(400).json({ error: '파일이 없습니다.' });
