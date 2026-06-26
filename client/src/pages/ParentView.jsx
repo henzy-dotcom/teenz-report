@@ -177,9 +177,9 @@ function PhotoSlider({ photos, label, emoji }) {
             onClick={() => setLightbox(true)}
             style={{
               position: 'absolute', bottom: 10, right: 10,
-              width: 34, height: 34, borderRadius: 8,
-              background: 'rgba(0,0,0,0.5)', border: 'none',
-              color: '#fff', fontSize: 16, cursor: 'pointer',
+              width: 44, height: 44, borderRadius: 10,
+              background: 'rgba(0,0,0,0.6)', border: 'none',
+              color: '#fff', fontSize: 26, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
             title="크게 보기"
