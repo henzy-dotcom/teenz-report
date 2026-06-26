@@ -55,12 +55,27 @@ module.exports = (db) => {
     const rows = db.prepare('SELECT * FROM chat_answers ORDER BY id ASC').all();
     res.json(rows.map(r => ({ ...r, buttons: JSON.parse(r.buttons || '[]') })));
   });
+  router.post('/answers', (req, res) => {
+    const { key, label, reply, buttons } = req.body;
+    if (!key || !label || !reply) return res.status(400).json({ error: '필수 항목 누락' });
+    const exists = db.prepare('SELECT id FROM chat_answers WHERE key = ?').get(key);
+    if (exists) return res.status(400).json({ error: '이미 존재하는 key입니다.' });
+    db.prepare('INSERT INTO chat_answers (key, label, reply, buttons) VALUES (?, ?, ?, ?)')
+      .run(key, label, reply, JSON.stringify(buttons || []));
+    res.json({ ok: true });
+  });
   router.patch('/answers/:key', (req, res) => {
-    const { reply, buttons } = req.body;
+    const { reply, buttons, label } = req.body;
     const row = db.prepare('SELECT id FROM chat_answers WHERE key = ?').get(req.params.key);
     if (!row) return res.status(404).json({ error: '답변을 찾을 수 없습니다.' });
-    db.prepare('UPDATE chat_answers SET reply = ?, buttons = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?')
-      .run(reply, JSON.stringify(buttons || []), req.params.key);
+    const fields = ['reply = ?', 'buttons = ?', 'updated_at = CURRENT_TIMESTAMP'];
+    const vals = [reply, JSON.stringify(buttons || [])];
+    if (label) { fields.unshift('label = ?'); vals.unshift(label); }
+    db.prepare(`UPDATE chat_answers SET ${fields.join(', ')} WHERE key = ?`).run(...vals, req.params.key);
+    res.json({ ok: true });
+  });
+  router.delete('/answers/:key', (req, res) => {
+    db.prepare('DELETE FROM chat_answers WHERE key = ?').run(req.params.key);
     res.json({ ok: true });
   });
 

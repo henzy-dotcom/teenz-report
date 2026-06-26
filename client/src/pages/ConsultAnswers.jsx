@@ -170,10 +170,18 @@ export default function ConsultAnswers() {
                     <div style={{ marginBottom: 8 }}>
                       <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>버튼 텍스트</div>
                       {btn.type === 'msg' ? (
-                        <select value={btn.label} onChange={e => updateBtn(i, 'label', e.target.value)} style={{ ...inputStyle, fontSize: 13 }}>
-                          <option value="">선택하거나 직접 입력...</option>
-                          {MSG_PRESETS.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
+                        <>
+                          <input
+                            list={`presets-${i}`}
+                            value={btn.label}
+                            onChange={e => updateBtn(i, 'label', e.target.value)}
+                            placeholder="직접 입력하거나 아래 목록에서 선택..."
+                            style={{ ...inputStyle, fontSize: 13 }}
+                          />
+                          <datalist id={`presets-${i}`}>
+                            {MSG_PRESETS.map(p => <option key={p} value={p} />)}
+                          </datalist>
+                        </>
                       ) : (
                         <input value={btn.label} onChange={e => updateBtn(i, 'label', e.target.value)}
                           placeholder={btn.type === 'form' ? '예: 🏫 방문상담 신청할게요' : '예: 📝 블로그에서 자세히 보기'}

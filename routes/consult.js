@@ -24,6 +24,7 @@ function matchKey(userMsg) {
   if (/숙제|과제|homework/.test(msg))                                       return '숙제';
   if (/수업|방식|커리큘럼|교재|내용|진행/.test(msg))                        return '수업방식';
   if (/위치|어디|주소|오는길|찾아|운영시간|시간|몇시/.test(msg))            return '위치시간';
+  if (/차량|픽업|pickup|차로데려|데려다|통학|셔틀/.test(msg))               return '차량픽업';
   if (/다른|또|추가|더|궁금/.test(msg))                                     return '인사';
   return '기타';
 }
