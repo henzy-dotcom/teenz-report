@@ -82,7 +82,7 @@ export default function MonthlyReportStats() {
       <div style={{ textAlign: 'center', padding: 80, color: '#9CA3AF' }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
         <div style={{ fontWeight: 600 }}>아직 리포트 데이터가 없어요</div>
-        <div style={{ fontSize: 13, marginTop: 6 }}>월간 운영 리포트를 작성하면 여기서 추이를 볼 수 있어요</div>
+        <div style={{ fontSize: 13, marginTop: 6 }}>운영 일지를 작성하면 여기서 추이를 볼 수 있어요</div>
         <button onClick={() => navigate('/monthly-reports')} style={{ marginTop: 16, padding: '10px 20px', background: '#2B3660', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 600 }}>리포트 작성하러 가기</button>
       </div>
     </div>

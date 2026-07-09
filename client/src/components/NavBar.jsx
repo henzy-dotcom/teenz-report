@@ -10,7 +10,7 @@ export default function NavBar() {
     { to: '/periods',       label: '리포트 회차', end: false },
     { to: '/students',      label: '학생 관리',   end: false },
     { to: '/attendance',      label: '출결 관리',   end: false },
-    { to: '/monthly-reports', label: '월간 리포트', end: true  },
+    { to: '/monthly-reports', label: '운영 일지', end: true  },
     { to: '/admin/consult', label: '신규생 상담', end: false },
     { to: '/teacher-comments', label: '선생님 한마디', end: false },
     { to: '/kakao-templates', label: '카톡 템플릿', end: false },

@@ -44,7 +44,7 @@ export default function MonthlyReportList() {
     <div className="page-container">
       <div className="page-header">
         <div>
-          <h1 className="page-title">월간 운영 리포트</h1>
+          <h1 className="page-title">운영 일지</h1>
           <p className="page-subtitle">매달 학원 운영 기록</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
