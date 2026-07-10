@@ -107,6 +107,19 @@ if (withoutCode.length > 0) {
 
 // ─── 월간 운영 리포트 ───
 db.exec(`
+  CREATE TABLE IF NOT EXISTS mr_calendar_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    event_date TEXT NOT NULL,
+    title TEXT NOT NULL,
+    color TEXT DEFAULT 'yellow',
+    description TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
+  );
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS monthly_reports (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     year_month TEXT UNIQUE NOT NULL,

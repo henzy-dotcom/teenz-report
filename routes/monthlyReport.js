@@ -146,6 +146,29 @@ module.exports = (db) => {
     res.json({ ok: true });
   });
 
+  // 캘린더 일정
+  router.get('/:id/calendar', (req, res) => {
+    const events = db.prepare('SELECT * FROM mr_calendar_events WHERE report_id = ? ORDER BY event_date, id').all(req.params.id);
+    res.json(events);
+  });
+  router.post('/:id/calendar', (req, res) => {
+    const { event_date, title, color, description } = req.body;
+    if (!event_date || !title) return res.status(400).json({ error: '날짜와 제목은 필수예요.' });
+    const r = db.prepare('INSERT INTO mr_calendar_events (report_id, event_date, title, color, description) VALUES (?,?,?,?,?)')
+      .run(req.params.id, event_date, title, color||'yellow', description||'');
+    res.json({ id: r.lastInsertRowid });
+  });
+  router.put('/:id/calendar/:eid', (req, res) => {
+    const { title, color, description } = req.body;
+    db.prepare('UPDATE mr_calendar_events SET title=?, color=?, description=? WHERE id=? AND report_id=?')
+      .run(title, color, description||'', req.params.eid, req.params.id);
+    res.json({ ok: true });
+  });
+  router.delete('/:id/calendar/:eid', (req, res) => {
+    db.prepare('DELETE FROM mr_calendar_events WHERE id=? AND report_id=?').run(req.params.eid, req.params.id);
+    res.json({ ok: true });
+  });
+
   // 홍보 항목
   router.put('/:id/promotions/:pid', (req, res) => {
     const { actual, target, memo } = req.body;

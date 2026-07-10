@@ -33,6 +33,68 @@ const S = {
 function fmtMoney(n) { return Number(n || 0).toLocaleString('ko-KR') + '원'; }
 function fmtYM(ym) { const [y, m] = ym.split('-'); return `${y}년 ${parseInt(m)}월`; }
 
+const COLORS = {
+  yellow: { bg: '#FEFCE8', border: '#FDE68A', chip: '#FEF08A', text: '#92400E', label: '노랑' },
+  blue:   { bg: '#EFF6FF', border: '#BAE6FD', chip: '#BAE6FD', text: '#1E40AF', label: '파랑' },
+  green:  { bg: '#F0FDF4', border: '#BBF7D0', chip: '#BBF7D0', text: '#166534', label: '초록' },
+  pink:   { bg: '#FDF2F8', border: '#FBCFE8', chip: '#FBCFE8', text: '#9D174D', label: '분홍' },
+  purple: { bg: '#FAF5FF', border: '#E9D5FF', chip: '#E9D5FF', text: '#6B21A8', label: '보라' },
+};
+
+const DOW = ['일','월','화','수','목','금','토'];
+
+function CalendarGrid({ yearMonth, events, onDayClick }) {
+  const [y, m] = yearMonth.split('-').map(Number);
+  const firstDay = new Date(y, m - 1, 1).getDay();
+  const daysInMonth = new Date(y, m, 0).getDate();
+
+  const eventsByDate = {};
+  for (const ev of events) {
+    const d = ev.event_date;
+    if (!eventsByDate[d]) eventsByDate[d] = [];
+    eventsByDate[d].push(ev);
+  }
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div>
+      {/* 요일 헤더 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+        {DOW.map((d, i) => (
+          <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, padding: '4px 0',
+            color: i === 0 ? '#EF4444' : i === 6 ? '#3B82F6' : '#9CA3AF' }}>{d}</div>
+        ))}
+      </div>
+      {/* 날짜 그리드 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
+        {cells.map((day, idx) => {
+          if (!day) return <div key={`e${idx}`} />;
+          const dateStr = `${yearMonth}-${String(day).padStart(2, '0')}`;
+          const dayEvents = eventsByDate[dateStr] || [];
+          const dow = (firstDay + day - 1) % 7;
+          return (
+            <div key={day} onClick={() => onDayClick(dateStr, dayEvents)}
+              style={{ minHeight: 56, background: '#FAFAFA', border: '1px solid #F3F4F6', borderRadius: 8, padding: '4px 5px', cursor: 'pointer', transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F0F4FF'}
+              onMouseLeave={e => e.currentTarget.style.background = '#FAFAFA'}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: dow === 0 ? '#EF4444' : dow === 6 ? '#3B82F6' : '#374151', marginBottom: 3 }}>{day}</div>
+              {dayEvents.slice(0, 3).map(ev => (
+                <div key={ev.id} style={{ fontSize: 10, background: COLORS[ev.color]?.chip || '#FEF08A', color: COLORS[ev.color]?.text || '#92400E', borderRadius: 3, padding: '1px 4px', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>
+                  {ev.title}
+                </div>
+              ))}
+              {dayEvents.length > 3 && <div style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600 }}>+{dayEvents.length - 3}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Counter({ value, onChange, min = 0 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -68,14 +130,55 @@ export default function MonthlyReportDetail() {
   const [open, setOpen] = useState(() => {
     try {
       const saved = localStorage.getItem('mr-sections');
-      return saved ? JSON.parse(saved) : { students: true, finance: true, checklist: true, promo: true, retro: true };
-    } catch { return { students: true, finance: true, checklist: true, promo: true, retro: true }; }
+      return saved ? JSON.parse(saved) : { students: true, finance: true, checklist: true, promo: true, calendar: true, retro: true };
+    } catch { return { students: true, finance: true, checklist: true, promo: true, calendar: true, retro: true }; }
   });
   const toggle = (key) => setOpen(prev => {
     const next = { ...prev, [key]: !prev[key] };
     localStorage.setItem('mr-sections', JSON.stringify(next));
     return next;
   });
+
+  // 캘린더
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [calendarModal, setCalendarModal] = useState(null); // { date, events }
+  const [eventForm, setEventForm] = useState({ title: '', color: 'yellow', description: '' });
+  const [editingEvent, setEditingEvent] = useState(null);
+
+  async function loadCalendar() {
+    const res = await fetch(`/api/monthly-reports/${id}/calendar`);
+    const data = await res.json();
+    setCalendarEvents(data);
+    return data;
+  }
+  useEffect(() => { if (id) loadCalendar(); }, [id]);
+
+  async function addEvent() {
+    if (!eventForm.title.trim()) return;
+    await fetch(`/api/monthly-reports/${id}/calendar`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...eventForm, event_date: calendarModal.date }),
+    });
+    setEventForm({ title: '', color: 'yellow', description: '' });
+    const updated = await loadCalendar();
+    setCalendarModal(p => ({ ...p, events: updated.filter(e => e.event_date === p.date) }));
+  }
+
+  async function updateEvent(eid) {
+    await fetch(`/api/monthly-reports/${id}/calendar/${eid}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingEvent),
+    });
+    setEditingEvent(null);
+    const updated = await loadCalendar();
+    setCalendarModal(p => ({ ...p, events: updated.filter(e => e.event_date === p.date) }));
+  }
+
+  async function deleteEvent(eid) {
+    await fetch(`/api/monthly-reports/${id}/calendar/${eid}`, { method: 'DELETE' });
+    const updated = await loadCalendar();
+    setCalendarModal(p => p ? ({ ...p, events: updated.filter(e => e.event_date === p.date) }) : null);
+  }
 
   // 신규생/퇴원생 모달
   const [newStudentModal, setNewStudentModal] = useState(false);
@@ -435,7 +538,17 @@ export default function MonthlyReportDetail() {
         ))}
       </Section>
 
-      {/* 5. 월간 회고 */}
+      {/* 5. 이달 플랜 */}
+      <Section title="📅 이달 플랜" open={open.calendar} onToggle={() => toggle('calendar')}
+        badge={`${calendarEvents.length}개`}>
+        <CalendarGrid
+          yearMonth={report.year_month}
+          events={calendarEvents}
+          onDayClick={(date, events) => setCalendarModal({ date, events })}
+        />
+      </Section>
+
+      {/* 6. 월간 회고 */}
       <Section title="📝 월간 회고" open={open.retro} onToggle={() => toggle('retro')}
         badge={report.reflection_good ? '작성됨' : '미작성'}>
         {[
@@ -451,6 +564,77 @@ export default function MonthlyReportDetail() {
           </div>
         ))}
       </Section>
+
+      {/* 캘린더 날짜 모달 */}
+      {calendarModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setCalendarModal(null)}>
+          <div className="modal" style={{ maxWidth: 420, width: '95%' }}>
+            <h2 className="modal-title">📅 {calendarModal.date.slice(5).replace('-', '월 ')}일</h2>
+
+            {/* 기존 일정 목록 */}
+            {calendarModal.events.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                {calendarModal.events.map(ev => (
+                  <div key={ev.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 10px', background: COLORS[ev.color]?.bg || '#FEFCE8', borderRadius: 10, marginBottom: 6, border: `1px solid ${COLORS[ev.color]?.border || '#FDE68A'}` }}>
+                    {editingEvent?.id === ev.id ? (
+                      <div style={{ flex: 1 }}>
+                        <input value={editingEvent.title} onChange={e => setEditingEvent(p => ({ ...p, title: e.target.value }))}
+                          style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 13, marginBottom: 6, boxSizing: 'border-box' }} />
+                        <div style={{ display: 'flex', gap: 5, marginBottom: 6, flexWrap: 'wrap' }}>
+                          {Object.entries(COLORS).map(([k, v]) => (
+                            <button key={k} onClick={() => setEditingEvent(p => ({ ...p, color: k }))}
+                              style={{ width: 22, height: 22, background: v.chip, border: editingEvent.color === k ? '2px solid #2B3660' : '1px solid #E5E7EB', borderRadius: 4, cursor: 'pointer' }} />
+                          ))}
+                        </div>
+                        <textarea value={editingEvent.description} onChange={e => setEditingEvent(p => ({ ...p, description: e.target.value }))}
+                          placeholder="상세 내용 (선택)" rows={2} style={{ width: '100%', padding: '6px 8px', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 12, resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                          <button onClick={() => updateEvent(ev.id)} style={{ flex: 1, padding: '7px', background: '#2B3660', color: '#fff', border: 'none', borderRadius: 7, fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>저장</button>
+                          <button onClick={() => setEditingEvent(null)} style={{ padding: '7px 10px', background: '#F3F4F6', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12 }}>취소</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: COLORS[ev.color]?.text || '#92400E' }}>{ev.title}</div>
+                          {ev.description && <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2, lineHeight: 1.4 }}>{ev.description}</div>}
+                        </div>
+                        <button onClick={() => setEditingEvent({ ...ev })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#9CA3AF', padding: 2 }}>✏️</button>
+                        <button onClick={() => { deleteEvent(ev.id); setCalendarModal(p => ({ ...p, events: p.events.filter(e => e.id !== ev.id) })); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#FCA5A5', padding: 2 }}>✕</button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 새 일정 추가 */}
+            <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', marginBottom: 8 }}>새 일정 추가</div>
+              <input value={eventForm.title} onChange={e => setEventForm(p => ({ ...p, title: e.target.value }))}
+                onKeyDown={e => e.key === 'Enter' && addEvent()}
+                placeholder="일정 제목 입력..." autoFocus
+                style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, marginBottom: 8, boxSizing: 'border-box', outline: 'none' }} />
+              {/* 색상 선택 */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>색상</span>
+                {Object.entries(COLORS).map(([k, v]) => (
+                  <button key={k} onClick={() => setEventForm(p => ({ ...p, color: k }))}
+                    title={v.label}
+                    style={{ width: 26, height: 26, background: v.chip, border: eventForm.color === k ? '2px solid #2B3660' : '1px solid #E5E7EB', borderRadius: 6, cursor: 'pointer' }} />
+                ))}
+              </div>
+              <textarea value={eventForm.description} onChange={e => setEventForm(p => ({ ...p, description: e.target.value }))}
+                placeholder="상세 내용 (선택)" rows={2}
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 12, resize: 'none', marginBottom: 10, boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none' }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setCalendarModal(null)} style={{ flex: 1, padding: 10, background: '#F3F4F6', border: 'none', borderRadius: 8, fontWeight: 600, color: '#6B7280', cursor: 'pointer' }}>닫기</button>
+                <button onClick={addEvent} style={{ flex: 2, padding: 10, background: '#2B3660', border: 'none', borderRadius: 8, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>추가</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 신규생 모달 */}
       {newStudentModal && (
