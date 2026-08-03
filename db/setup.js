@@ -394,6 +394,26 @@ if (existingAnswers.c === 0) {
   console.log('✅ 챗봇 기본 답변 삽입 완료');
 }
 
+// 시간표 항목 없으면 추가 (기존 DB migration)
+const hasSchedule = db.prepare("SELECT id FROM chat_answers WHERE key = '시간표'").get();
+if (!hasSchedule) {
+  db.prepare("INSERT INTO chat_answers (key, label, reply, buttons) VALUES (?, ?, ?, ?)")
+    .run('시간표', '수업 시간표', '🗓️ 수업 시간표 안내\n\n아이 나이와 수업 날짜에 따라 반이 다양하게 구성돼요.\n정확한 시간표는 상담 시 맞춰서 안내드릴게요 😊',
+      JSON.stringify([{label:'🏫 방문상담 신청할게요',type:'form',formType:'방문상담'},{label:'✅ 레벨테스트 신청할게요',type:'form',formType:'레벨테스트'},{label:'💬 다른 질문이 있어요',type:'msg'}]));
+  console.log('✅ 시간표 챗봇 답변 추가');
+}
+
+// 인사 버튼에 시간표 없으면 추가
+const greetingRow = db.prepare("SELECT id, buttons FROM chat_answers WHERE key = '인사'").get();
+if (greetingRow) {
+  const btns = JSON.parse(greetingRow.buttons || '[]');
+  if (!btns.some(b => b.label.includes('시간표'))) {
+    btns.push({ label: '⏰ 시간표가 궁금해요', type: 'msg' });
+    db.prepare("UPDATE chat_answers SET buttons = ? WHERE key = '인사'").run(JSON.stringify(btns));
+    console.log('✅ 인사 버튼에 시간표 추가');
+  }
+}
+
 console.log('✅ DB 스키마 준비 완료:', DB_PATH);
 
 module.exports = { db, makeShareCode };
