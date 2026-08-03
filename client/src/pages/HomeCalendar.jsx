@@ -56,6 +56,7 @@ function buildWeeks(year, month) {
 function buildEventSpans(events, weeks) {
   const spans = weeks.map(() => []);
   const sorted = [...events].sort((a, b) => {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
     const lenA = a.end_date && a.end_date > a.event_date ? diffDays(a.event_date, a.end_date) : 0;
     const lenB = b.end_date && b.end_date > b.event_date ? diffDays(b.event_date, b.end_date) : 0;
     if (lenB !== lenA) return lenB - lenA;
@@ -190,10 +191,12 @@ export default function HomeCalendar() {
   }
 
   const panelEvents = selectedDate
-    ? events.filter(ev => {
-        const end = ev.end_date && ev.end_date >= ev.event_date ? ev.end_date : ev.event_date;
-        return ev.event_date <= selectedDate && end >= selectedDate;
-      })
+    ? events
+        .filter(ev => {
+          const end = ev.end_date && ev.end_date >= ev.event_date ? ev.end_date : ev.event_date;
+          return ev.event_date <= selectedDate && end >= selectedDate;
+        })
+        .sort((a, b) => (!!a.done !== !!b.done ? (a.done ? 1 : -1) : 0))
     : [];
 
   const weeks = buildWeeks(year, month);
@@ -298,8 +301,8 @@ export default function HomeCalendar() {
                   return (
                     <div key={`${ev.id}-${wi}`}
                       onClick={e => { e.stopPropagation(); openEditModal(ev.event_date, ev); }}
-                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: c.bar, borderLeft: isStart ? `3px solid ${c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: 'pointer', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box' }}>
-                      {isStart && <span style={{ fontSize: 11, fontWeight: 700, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>}
+                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: ev.done ? '#F3F4F6' : c.bar, borderLeft: isStart ? `3px solid ${ev.done ? '#D1D5DB' : c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: 'pointer', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box', opacity: ev.done ? 0.7 : 1 }}>
+                      {isStart && <span style={{ fontSize: 11, fontWeight: 700, color: ev.done ? '#9CA3AF' : c.text, textDecoration: ev.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>}
                     </div>
                   );
                 })}
