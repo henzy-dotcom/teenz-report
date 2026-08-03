@@ -193,8 +193,8 @@ export default function HomeCalendar() {
           {/* 년도 클릭 */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => { setShowYearPicker(p => !p); setShowMonthPicker(false); }}
-              style={{ fontSize: 22, fontWeight: 800, color: '#1C1C1E', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 6, lineHeight: 1 }}>
-              {year}년
+              style={{ fontSize: 22, fontWeight: 800, color: '#1C1C1E', background: showYearPicker ? '#F0F4FF' : '#F3F4F6', border: '1px solid #E5E7EB', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+              {year}년 <span style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{showYearPicker ? '▲' : '▼'}</span>
             </button>
             {showYearPicker && (
               <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 300, background: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, minWidth: 220 }}>
@@ -210,8 +210,8 @@ export default function HomeCalendar() {
           {/* 월 클릭 */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => { setShowMonthPicker(p => !p); setShowYearPicker(false); }}
-              style={{ fontSize: 22, fontWeight: 800, color: '#2B3660', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 6, lineHeight: 1 }}>
-              {month}월
+              style={{ fontSize: 22, fontWeight: 800, color: '#2B3660', background: showMonthPicker ? '#F0F4FF' : '#F3F4F6', border: '1px solid #E5E7EB', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
+              {month}월 <span style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{showMonthPicker ? '▲' : '▼'}</span>
             </button>
             {showMonthPicker && (
               <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 300, background: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, minWidth: 200 }}>
