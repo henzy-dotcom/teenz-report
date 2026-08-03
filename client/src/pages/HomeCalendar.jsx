@@ -9,29 +9,31 @@ const todayStr = [
 ].join('-');
 
 const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const DOW_KO = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 const MONTH_LABELS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
 const COLORS = {
-  yellow: { bar: '#FEF08A', text: '#78350F', border: '#F59E0B' },
-  blue:   { bar: '#BAE6FD', text: '#1E3A5F', border: '#3B82F6' },
-  green:  { bar: '#BBF7D0', text: '#14532D', border: '#10B981' },
-  pink:   { bar: '#FBCFE8', text: '#831843', border: '#EC4899' },
-  purple: { bar: '#E9D5FF', text: '#4C1D95', border: '#A855F7' },
-  orange: { bar: '#FED7AA', text: '#7C2D12', border: '#F97316' },
+  yellow: { bar: '#FEF08A', text: '#78350F', border: '#F59E0B', label: '노랑' },
+  blue:   { bar: '#BAE6FD', text: '#1E3A5F', border: '#3B82F6', label: '파랑' },
+  green:  { bar: '#BBF7D0', text: '#14532D', border: '#10B981', label: '초록' },
+  pink:   { bar: '#FBCFE8', text: '#831843', border: '#EC4899', label: '분홍' },
+  purple: { bar: '#E9D5FF', text: '#4C1D95', border: '#A855F7', label: '보라' },
+  orange: { bar: '#FED7AA', text: '#7C2D12', border: '#F97316', label: '주황' },
 };
 const COLOR_KEYS = Object.keys(COLORS);
 
-function dateStr(y, m, d) {
+function makeDateStr(y, m, d) {
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-}
-function addDays(s, n) {
-  const d = new Date(s); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10);
 }
 function diffDays(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000);
 }
+function fmtDateLabel(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dow = new Date(y, m - 1, d).getDay();
+  return `${m}월 ${d}일 (${DOW_KO[dow]})`;
+}
 
-// 주어진 달의 달력 주(weeks) 계산
 function buildWeeks(year, month) {
   const firstDay = new Date(year, month - 1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -41,7 +43,7 @@ function buildWeeks(year, month) {
     const week = [];
     for (let i = 0; i < 7; i++, day++) {
       if (day >= 1 && day <= daysInMonth) {
-        week.push({ day, date: dateStr(year, month, day), dow: i });
+        week.push({ day, date: makeDateStr(year, month, day), dow: i });
       } else {
         week.push(null);
       }
@@ -51,13 +53,12 @@ function buildWeeks(year, month) {
   return weeks;
 }
 
-// 이벤트를 주 단위로 잘라서 스팬 계산
 function buildEventSpans(events, weeks) {
-  const spans = weeks.map(() => []); // per week, list of {ev, startCol, endCol, lane}
+  const spans = weeks.map(() => []);
   const sorted = [...events].sort((a, b) => {
     const lenA = a.end_date && a.end_date > a.event_date ? diffDays(a.event_date, a.end_date) : 0;
     const lenB = b.end_date && b.end_date > b.event_date ? diffDays(b.event_date, b.end_date) : 0;
-    if (lenB !== lenA) return lenB - lenA; // 긴 이벤트 먼저
+    if (lenB !== lenA) return lenB - lenA;
     return a.event_date.localeCompare(b.event_date);
   });
 
@@ -79,7 +80,6 @@ function buildEventSpans(events, weeks) {
       const endCol = week.findIndex(c => c && c.date === clampedEnd);
       if (startCol === -1 || endCol === -1) continue;
 
-      // lane 배정: 겹치지 않는 첫 번째 lane 찾기
       const used = spans[wi].map(s => ({ lane: s.lane, sc: s.startCol, ec: s.endCol }));
       let lane = 0;
       while (used.some(u => u.lane === lane && u.sc <= endCol && u.ec >= startCol)) lane++;
@@ -94,12 +94,13 @@ export default function HomeCalendar() {
   const navigate = useNavigate();
   const [year, setYear]   = useState(TODAY.getFullYear());
   const [month, setMonth] = useState(TODAY.getMonth() + 1);
-  const [events, setEvents]         = useState([]);
+  const [events, setEvents]               = useState([]);
   const [monthReportId, setMonthReportId] = useState(null);
-  const [modal, setModal]           = useState(null); // { type: 'day'|'event', date, ev? }
-  const [form, setForm]             = useState({ title: '', color: 'yellow', description: '', end_date: '' });
-  const [saving, setSaving]         = useState(false);
-  const [showYearPicker, setShowYearPicker] = useState(false);
+  const [selectedDate, setSelectedDate]   = useState(null); // 오른쪽 패널용
+  const [editModal, setEditModal]         = useState(null); // { date, ev? }
+  const [form, setForm]                   = useState({ title: '', color: 'yellow', description: '', end_date: '' });
+  const [saving, setSaving]               = useState(false);
+  const [showYearPicker, setShowYearPicker]   = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
   const ym = `${year}-${String(month).padStart(2,'0')}`;
@@ -140,48 +141,57 @@ export default function HomeCalendar() {
     if (!form.title.trim()) return;
     setSaving(true);
     const rid = await ensureReport();
-    if (modal.ev) {
-      await fetch(`/api/monthly-reports/${rid}/calendar/${modal.ev.id}`, {
+    if (editModal.ev) {
+      await fetch(`/api/monthly-reports/${rid}/calendar/${editModal.ev.id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: form.title, color: form.color, description: form.description, end_date: form.end_date }),
       });
     } else {
       await fetch(`/api/monthly-reports/${rid}/calendar`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_date: modal.date, end_date: form.end_date, title: form.title, color: form.color, description: form.description }),
+        body: JSON.stringify({ event_date: editModal.date, end_date: form.end_date, title: form.title, color: form.color, description: form.description }),
       });
     }
     await refreshEvents(rid);
     setSaving(false);
-    setModal(null);
+    setEditModal(null);
   };
 
   const deleteEvent = async (ev) => {
+    if (!window.confirm('삭제할까요?')) return;
     if (!monthReportId) return;
     await fetch(`/api/monthly-reports/${monthReportId}/calendar/${ev.id}`, { method: 'DELETE' });
     await refreshEvents(monthReportId);
-    setModal(null);
+    setEditModal(null);
   };
 
   function prevMonth() { if (month === 1) { setYear(y => y-1); setMonth(12); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 12) { setYear(y => y+1); setMonth(1); } else setMonth(m => m+1); }
-  function goToday()   { setYear(TODAY.getFullYear()); setMonth(TODAY.getMonth()+1); }
+  function goToday()   { setYear(TODAY.getFullYear()); setMonth(TODAY.getMonth()+1); setSelectedDate(todayStr); }
 
-  function openDay(date) {
-    setForm({ title: '', color: 'yellow', description: '', end_date: '' });
-    setModal({ type: 'day', date });
+  function openDayPanel(date) {
+    setSelectedDate(date);
+    setShowYearPicker(false);
+    setShowMonthPicker(false);
   }
-  function openEvent(ev, e) {
-    e.stopPropagation();
-    setForm({ title: ev.title, color: ev.color, description: ev.description||'', end_date: ev.end_date||'' });
-    setModal({ type: 'event', date: ev.event_date, ev });
+
+  function openEditModal(date, ev) {
+    setForm({ title: ev?.title || '', color: ev?.color || 'yellow', description: ev?.description || '', end_date: ev?.end_date || '' });
+    setEditModal({ date, ev: ev || null });
   }
+
+  const panelEvents = selectedDate
+    ? events.filter(ev => {
+        const end = ev.end_date && ev.end_date >= ev.event_date ? ev.end_date : ev.event_date;
+        return ev.event_date <= selectedDate && end >= selectedDate;
+      })
+    : [];
 
   const weeks = buildWeeks(year, month);
   const spans = buildEventSpans(events, weeks);
   const MAX_LANES = 3;
   const LANE_H = 22;
-  const CELL_TOP = 28; // space for date number
+  const CELL_TOP = 28;
   const CELL_MIN_H = CELL_TOP + MAX_LANES * LANE_H + 10;
 
   return (
@@ -190,7 +200,6 @@ export default function HomeCalendar() {
       {/* 헤더 */}
       <div style={{ padding: '12px 20px 10px', background: '#fff', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {/* 년도 클릭 */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => { setShowYearPicker(p => !p); setShowMonthPicker(false); }}
               style={{ fontSize: 22, fontWeight: 800, color: '#1C1C1E', background: showYearPicker ? '#F0F4FF' : '#F3F4F6', border: '1px solid #E5E7EB', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -207,7 +216,6 @@ export default function HomeCalendar() {
               </div>
             )}
           </div>
-          {/* 월 클릭 */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => { setShowMonthPicker(p => !p); setShowYearPicker(false); }}
               style={{ fontSize: 22, fontWeight: 800, color: '#2B3660', background: showMonthPicker ? '#F0F4FF' : '#F3F4F6', border: '1px solid #E5E7EB', cursor: 'pointer', padding: '4px 10px', borderRadius: 8, lineHeight: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -225,7 +233,6 @@ export default function HomeCalendar() {
             )}
           </div>
         </div>
-
         <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
           <button onClick={goToday} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid #E5E7EB', background: '#fff', fontSize: 13, fontWeight: 700, color: '#2B3660', cursor: 'pointer' }}>오늘</button>
           <button onClick={prevMonth} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #E5E7EB', background: '#fff', fontSize: 16, cursor: 'pointer' }}>‹</button>
@@ -239,144 +246,168 @@ export default function HomeCalendar() {
         </div>
       </div>
 
-      {/* 달력 영역 */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+      {/* 본문 (달력 + 우측 패널) */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
         onClick={() => { setShowYearPicker(false); setShowMonthPicker(false); }}>
 
-        {/* 요일 헤더 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: '#fff', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-          {DOW_LABELS.map((d, i) => (
-            <div key={d} style={{ textAlign: 'center', padding: '8px 0', fontSize: 12, fontWeight: 700, color: i === 0 ? '#EF4444' : i === 6 ? '#3B82F6' : '#9CA3AF' }}>{d}</div>
-          ))}
-        </div>
+        {/* 달력 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', transition: 'all 0.25s' }}>
+          {/* 요일 헤더 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: '#fff', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
+            {DOW_LABELS.map((d, i) => (
+              <div key={d} style={{ textAlign: 'center', padding: '8px 0', fontSize: 12, fontWeight: 700, color: i === 0 ? '#EF4444' : i === 6 ? '#3B82F6' : '#9CA3AF' }}>{d}</div>
+            ))}
+          </div>
 
-        {/* 주 rows */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {weeks.map((week, wi) => (
-            <div key={wi} style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: wi < weeks.length - 1 ? '1px solid #E5E7EB' : 'none', position: 'relative', minHeight: CELL_MIN_H }}>
-
-              {/* 날짜 셀 배경 */}
-              {week.map((cell, ci) => {
-                if (!cell) return <div key={ci} style={{ background: '#F3F4F6', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none' }} />;
-                const isToday = cell.date === todayStr;
-                const isWeekend = cell.dow === 0 || cell.dow === 6;
-                return (
-                  <div key={ci} onClick={() => openDay(cell.date)}
-                    style={{ position: 'relative', background: isToday ? '#EEF2FF' : '#fff', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none', cursor: 'pointer', padding: '5px 6px 4px' }}
-                    onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = '#F8FAFF'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = isToday ? '#EEF2FF' : '#fff'; }}>
-                    {/* 날짜 숫자 */}
-                    <div style={{
-                      width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: isToday ? 800 : 500,
-                      background: isToday ? '#2B3660' : 'transparent',
-                      color: isToday ? '#fff' : isWeekend ? (cell.dow === 0 ? '#EF4444' : '#3B82F6') : '#374151',
-                    }}>{cell.day}</div>
-                  </div>
-                );
-              })}
-
-              {/* 이벤트 바 - absolute positioning over the week row */}
-              {spans[wi].map(({ ev, startCol, endCol, lane, isStart, isEnd }) => {
-                if (lane >= MAX_LANES) return null;
-                const colW = 100 / 7;
-                const left = startCol * colW;
-                const width = (endCol - startCol + 1) * colW;
-                const top = CELL_TOP + lane * LANE_H;
-                const c = COLORS[ev.color] || COLORS.yellow;
-                return (
-                  <div key={`${ev.id}-${wi}`}
-                    onClick={e => openEvent(ev, e)}
-                    style={{
-                      position: 'absolute',
-                      left: `calc(${left}% + ${isStart ? 3 : 0}px)`,
-                      width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`,
-                      top, height: LANE_H - 3,
-                      background: c.bar,
-                      borderLeft: isStart ? `3px solid ${c.border}` : 'none',
-                      borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0,
-                      display: 'flex', alignItems: 'center',
-                      padding: '0 5px',
-                      cursor: 'pointer',
-                      zIndex: 10,
-                      overflow: 'hidden',
-                      boxSizing: 'border-box',
-                    }}>
-                    {isStart && (
-                      <span style={{ fontSize: 11, fontWeight: 700, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {ev.title}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* +N 더보기 표시 */}
-              {(() => {
-                const overflowCols = {};
-                spans[wi].forEach(({ startCol, endCol, lane }) => {
-                  if (lane >= MAX_LANES) {
-                    for (let c = startCol; c <= endCol; c++) {
-                      overflowCols[c] = (overflowCols[c] || 0) + 1;
-                    }
-                  }
-                });
-                return Object.entries(overflowCols).map(([col, cnt]) => {
-                  const colW = 100 / 7;
+          {/* 주 rows */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {weeks.map((week, wi) => (
+              <div key={wi} style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: wi < weeks.length - 1 ? '1px solid #E5E7EB' : 'none', position: 'relative', minHeight: CELL_MIN_H }}>
+                {week.map((cell, ci) => {
+                  if (!cell) return <div key={ci} style={{ background: '#F3F4F6', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none' }} />;
+                  const isToday = cell.date === todayStr;
+                  const isSelected = cell.date === selectedDate;
+                  const isWeekend = cell.dow === 0 || cell.dow === 6;
                   return (
-                    <div key={`more-${col}`} style={{
-                      position: 'absolute',
-                      left: `calc(${Number(col) * colW}% + 3px)`,
-                      top: CELL_TOP + MAX_LANES * LANE_H,
-                      fontSize: 10, color: '#9CA3AF', fontWeight: 700, zIndex: 11,
-                    }}>+{cnt}개</div>
+                    <div key={ci} onClick={() => openDayPanel(cell.date)}
+                      style={{ position: 'relative', background: isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none', cursor: 'pointer', padding: '5px 6px 4px', outline: isSelected ? '2px solid #2B3660' : 'none', outlineOffset: '-2px' }}
+                      onMouseEnter={e => { if (!isSelected && !isToday) e.currentTarget.style.background = '#F8FAFF'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff'; }}>
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: isToday ? 800 : 500, background: isToday ? '#2B3660' : 'transparent', color: isToday ? '#fff' : isWeekend ? (cell.dow === 0 ? '#EF4444' : '#3B82F6') : '#374151' }}>{cell.day}</div>
+                    </div>
                   );
-                });
-              })()}
-            </div>
-          ))}
+                })}
+
+                {/* 이벤트 바 */}
+                {spans[wi].map(({ ev, startCol, endCol, lane, isStart, isEnd }) => {
+                  if (lane >= MAX_LANES) return null;
+                  const colW = 100 / 7;
+                  const left = startCol * colW;
+                  const width = (endCol - startCol + 1) * colW;
+                  const top = CELL_TOP + lane * LANE_H;
+                  const c = COLORS[ev.color] || COLORS.yellow;
+                  return (
+                    <div key={`${ev.id}-${wi}`}
+                      onClick={e => { e.stopPropagation(); openEditModal(ev.event_date, ev); }}
+                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: c.bar, borderLeft: isStart ? `3px solid ${c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: 'pointer', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box' }}>
+                      {isStart && <span style={{ fontSize: 11, fontWeight: 700, color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>}
+                    </div>
+                  );
+                })}
+
+                {/* +N 더보기 */}
+                {(() => {
+                  const over = {};
+                  spans[wi].forEach(({ startCol, endCol, lane }) => {
+                    if (lane >= MAX_LANES) for (let c = startCol; c <= endCol; c++) over[c] = (over[c] || 0) + 1;
+                  });
+                  return Object.entries(over).map(([col, cnt]) => (
+                    <div key={`more-${col}`} style={{ position: 'absolute', left: `calc(${Number(col) * 100/7}% + 3px)`, top: CELL_TOP + MAX_LANES * LANE_H, fontSize: 10, color: '#9CA3AF', fontWeight: 700, zIndex: 11 }}>+{cnt}개</div>
+                  ));
+                })()}
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* 우측 날짜 상세 패널 */}
+        {selectedDate && (
+          <div style={{ width: 320, borderLeft: '1px solid #E5E7EB', background: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
+            {/* 패널 헤더 */}
+            <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: selectedDate === todayStr ? '#2B3660' : '#1C1C1E' }}>
+                  {fmtDateLabel(selectedDate)}
+                  {selectedDate === todayStr && <span style={{ marginLeft: 8, fontSize: 11, background: '#2B3660', color: '#fff', borderRadius: 10, padding: '2px 8px', verticalAlign: 'middle' }}>오늘</span>}
+                </div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 3 }}>{panelEvents.length}개 일정</div>
+              </div>
+              <button onClick={() => setSelectedDate(null)} style={{ background: 'none', border: 'none', fontSize: 18, color: '#9CA3AF', cursor: 'pointer', padding: 4, lineHeight: 1 }}>✕</button>
+            </div>
+
+            {/* 일정 목록 */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+              {panelEvents.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#D1D5DB' }}>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
+                  <div style={{ fontSize: 13 }}>일정이 없어요</div>
+                </div>
+              ) : (
+                panelEvents.map(ev => {
+                  const c = COLORS[ev.color] || COLORS.yellow;
+                  const hasRange = ev.end_date && ev.end_date > ev.event_date;
+                  return (
+                    <div key={ev.id} style={{ background: '#F9FAFB', borderRadius: 14, padding: '14px 16px', marginBottom: 10, borderLeft: `4px solid ${c.border}`, position: 'relative' }}>
+                      {/* 색상 뱃지 */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.border, flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>{c.label}</span>
+                        {hasRange && (
+                          <span style={{ fontSize: 11, background: '#EEF2FF', color: '#2B3660', borderRadius: 6, padding: '1px 7px', fontWeight: 600 }}>
+                            {fmtDateLabel(ev.event_date).slice(0, -5)} – {fmtDateLabel(ev.end_date).slice(0, -5)}
+                          </span>
+                        )}
+                      </div>
+                      {/* 제목 */}
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: ev.description ? 6 : 0, lineHeight: 1.4 }}>{ev.title}</div>
+                      {/* 설명 */}
+                      {ev.description && (
+                        <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{ev.description}</div>
+                      )}
+                      {/* 수정 버튼 */}
+                      <button onClick={() => openEditModal(ev.event_date, ev)}
+                        style={{ position: 'absolute', top: 12, right: 12, background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+                        수정
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* 일정 추가 버튼 */}
+            <div style={{ padding: '12px 16px', borderTop: '1px solid #F3F4F6' }}>
+              <button onClick={() => openEditModal(selectedDate, null)}
+                style={{ width: '100%', padding: '12px', background: '#2B3660', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                + 일정 추가
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 모달 */}
-      {modal && (
-        <div onClick={e => e.target === e.currentTarget && setModal(null)}
+      {/* 수정/추가 모달 */}
+      {editModal && (
+        <div onClick={e => e.target === e.currentTarget && setEditModal(null)}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 500, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 600, padding: '20px 20px 32px', boxShadow: '0 -4px 32px rgba(0,0,0,0.12)' }}>
-            {/* 제목 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#1C1C1E' }}>
-                {modal.ev ? '일정 수정' : `${modal.date?.slice(5).replace('-','월 ')}일`}
+                {editModal.ev ? '일정 수정' : `${fmtDateLabel(editModal.date)} 일정 추가`}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {modal.ev && (
-                  <button onClick={() => { if (window.confirm('삭제할까요?')) deleteEvent(modal.ev); }}
-                    style={{ padding: '6px 12px', background: '#FEE2E2', border: 'none', borderRadius: 8, color: '#B91C1C', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>삭제</button>
+                {editModal.ev && (
+                  <button onClick={() => deleteEvent(editModal.ev)} style={{ padding: '6px 12px', background: '#FEE2E2', border: 'none', borderRadius: 8, color: '#B91C1C', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>삭제</button>
                 )}
-                <button onClick={() => setModal(null)}
-                  style={{ padding: '6px 12px', background: '#F3F4F6', border: 'none', borderRadius: 8, color: '#6B7280', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>닫기</button>
+                <button onClick={() => setEditModal(null)} style={{ padding: '6px 12px', background: '#F3F4F6', border: 'none', borderRadius: 8, color: '#6B7280', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>닫기</button>
               </div>
             </div>
 
-            {/* 제목 입력 */}
             <input value={form.title} onChange={e => setForm(p => ({...p, title: e.target.value}))}
               onKeyDown={e => e.key === 'Enter' && saveEvent()}
               placeholder="일정 제목" autoFocus
               style={{ width: '100%', padding: '11px 14px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 15, marginBottom: 10, boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none' }}
               onFocus={e => e.target.style.borderColor = '#2B3660'}
-              onBlur={e => e.target.style.borderColor = '#E5E7EB'}
-            />
+              onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
 
-            {/* 종료일 (기간 일정) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600, flexShrink: 0 }}>종료일</span>
-              <input type="date" value={form.end_date} min={modal.date}
+              <input type="date" value={form.end_date} min={editModal.date}
                 onChange={e => setForm(p => ({...p, end_date: e.target.value}))}
                 style={{ flex: 1, padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', outline: 'none' }} />
               {form.end_date && <button onClick={() => setForm(p => ({...p, end_date: ''}))} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: 16 }}>✕</button>}
             </div>
 
-            {/* 색상 */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
               <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600 }}>색상</span>
               {COLOR_KEYS.map(k => (
@@ -385,15 +416,13 @@ export default function HomeCalendar() {
               ))}
             </div>
 
-            {/* 메모 */}
             <textarea value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))}
-              placeholder="메모 (선택)" rows={2}
+              placeholder="메모 (선택)" rows={3}
               style={{ width: '100%', padding: '10px 14px', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 13, resize: 'none', marginBottom: 12, boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none' }} />
 
-            {/* 저장 */}
             <button onClick={saveEvent} disabled={saving || !form.title.trim()}
               style={{ width: '100%', padding: '14px', background: form.title.trim() ? '#2B3660' : '#E5E7EB', color: form.title.trim() ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: form.title.trim() ? 'pointer' : 'default' }}>
-              {saving ? '저장 중...' : modal.ev ? '수정 완료' : '추가하기'}
+              {saving ? '저장 중...' : editModal.ev ? '수정 완료' : '추가하기'}
             </button>
           </div>
         </div>
