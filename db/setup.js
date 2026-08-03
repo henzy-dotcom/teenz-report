@@ -122,6 +122,7 @@ db.exec(`
 
 // 기존 DB 마이그레이션: end_date 컬럼 추가
 try { db.exec(`ALTER TABLE mr_calendar_events ADD COLUMN end_date TEXT DEFAULT ''`); } catch(e) {}
+try { db.exec(`ALTER TABLE mr_calendar_events ADD COLUMN done INTEGER DEFAULT 0`); } catch(e) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS monthly_reports (

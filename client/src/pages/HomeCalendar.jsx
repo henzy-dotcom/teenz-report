@@ -165,6 +165,15 @@ export default function HomeCalendar() {
     setEditModal(null);
   };
 
+  const toggleDone = async (ev) => {
+    const rid = monthReportId || await ensureReport();
+    await fetch(`/api/monthly-reports/${rid}/calendar/${ev.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done: !ev.done }),
+    });
+    await refreshEvents(rid);
+  };
+
   function prevMonth() { if (month === 1) { setYear(y => y-1); setMonth(12); } else setMonth(m => m-1); }
   function nextMonth() { if (month === 12) { setYear(y => y+1); setMonth(1); } else setMonth(m => m+1); }
   function goToday()   { setYear(TODAY.getFullYear()); setMonth(TODAY.getMonth()+1); setSelectedDate(todayStr); }
@@ -337,10 +346,14 @@ export default function HomeCalendar() {
                   const c = COLORS[ev.color] || COLORS.yellow;
                   const hasRange = ev.end_date && ev.end_date > ev.event_date;
                   return (
-                    <div key={ev.id} style={{ background: '#F9FAFB', borderRadius: 14, padding: '14px 16px', marginBottom: 10, borderLeft: `4px solid ${c.border}`, position: 'relative' }}>
-                      {/* 색상 뱃지 */}
+                    <div key={ev.id} style={{ background: ev.done ? '#F3F4F6' : '#F9FAFB', borderRadius: 14, padding: '14px 16px', marginBottom: 10, borderLeft: `4px solid ${ev.done ? '#D1D5DB' : c.border}`, position: 'relative', opacity: ev.done ? 0.7 : 1, transition: 'all 0.2s' }}>
+                      {/* 체크박스 + 색상 뱃지 */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.border, flexShrink: 0 }} />
+                        <button onClick={() => toggleDone(ev)}
+                          style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${ev.done ? '#10B981' : '#D1D5DB'}`, background: ev.done ? '#10B981' : 'transparent', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                          {ev.done && <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, lineHeight: 1 }}>✓</span>}
+                        </button>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: ev.done ? '#D1D5DB' : c.border, flexShrink: 0 }} />
                         <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>{c.label}</span>
                         {hasRange && (
                           <span style={{ fontSize: 11, background: '#EEF2FF', color: '#2B3660', borderRadius: 6, padding: '1px 7px', fontWeight: 600 }}>
@@ -348,17 +361,19 @@ export default function HomeCalendar() {
                           </span>
                         )}
                       </div>
-                      {/* 제목 */}
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: ev.description ? 6 : 0, lineHeight: 1.4 }}>{ev.title}</div>
-                      {/* 설명 */}
+                      {/* 제목 (취소선) */}
+                      <div style={{ fontSize: 15, fontWeight: 700, color: ev.done ? '#9CA3AF' : '#1C1C1E', marginBottom: ev.description ? 6 : 0, lineHeight: 1.4, textDecoration: ev.done ? 'line-through' : 'none' }}>{ev.title}</div>
+                      {/* 설명 (취소선) */}
                       {ev.description && (
-                        <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{ev.description}</div>
+                        <div style={{ fontSize: 13, color: ev.done ? '#B0B7C3' : '#6B7280', lineHeight: 1.6, whiteSpace: 'pre-wrap', textDecoration: ev.done ? 'line-through' : 'none' }}>{ev.description}</div>
                       )}
                       {/* 수정 버튼 */}
-                      <button onClick={() => openEditModal(ev.event_date, ev)}
-                        style={{ position: 'absolute', top: 12, right: 12, background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
-                        수정
-                      </button>
+                      {!ev.done && (
+                        <button onClick={() => openEditModal(ev.event_date, ev)}
+                          style={{ position: 'absolute', top: 12, right: 12, background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+                          수정
+                        </button>
+                      )}
                     </div>
                   );
                 })
