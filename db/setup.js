@@ -111,6 +111,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     report_id INTEGER NOT NULL,
     event_date TEXT NOT NULL,
+    end_date TEXT DEFAULT '',
     title TEXT NOT NULL,
     color TEXT DEFAULT 'yellow',
     description TEXT DEFAULT '',
@@ -118,6 +119,9 @@ db.exec(`
     FOREIGN KEY(report_id) REFERENCES monthly_reports(id) ON DELETE CASCADE
   );
 `);
+
+// 기존 DB 마이그레이션: end_date 컬럼 추가
+try { db.exec(`ALTER TABLE mr_calendar_events ADD COLUMN end_date TEXT DEFAULT ''`); } catch(e) {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS monthly_reports (
