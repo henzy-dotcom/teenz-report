@@ -16,6 +16,7 @@ import Attendance from './pages/Attendance.jsx';
 import MonthlyReportList from './pages/MonthlyReportList.jsx';
 import MonthlyReportDetail from './pages/MonthlyReportDetail.jsx';
 import MonthlyReportStats from './pages/MonthlyReportStats.jsx';
+import HomeCalendar from './pages/HomeCalendar.jsx';
 
 export const ToastContext = React.createContext(null);
 
@@ -35,7 +36,8 @@ function AppInner() {
       <div className={isParent ? 'parent-view' : ''} style={isParent ? { minHeight: '100vh', background: 'var(--color-deep-navy)' } : {}}>
         {!isParent && !isConsultPublic && <NavBar />}
         <Routes>
-          <Route path="/"                             element={<Dashboard />} />
+          <Route path="/"                             element={<HomeCalendar />} />
+          <Route path="/dashboard"                    element={<Dashboard />} />
           <Route path="/students"                     element={<Students />} />
           <Route path="/periods"                      element={<PeriodManage />} />
           <Route path="/reports/:periodId/:studentId" element={<ReportEdit />} />

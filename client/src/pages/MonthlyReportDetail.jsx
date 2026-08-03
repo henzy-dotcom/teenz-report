@@ -77,12 +77,12 @@ function CalendarGrid({ yearMonth, events, onDayClick }) {
           const dow = (firstDay + day - 1) % 7;
           return (
             <div key={day} onClick={() => onDayClick(dateStr, dayEvents)}
-              style={{ minHeight: 56, background: '#FAFAFA', border: '1px solid #F3F4F6', borderRadius: 8, padding: '4px 5px', cursor: 'pointer', transition: 'background 0.15s' }}
+              style={{ minHeight: 56, background: '#FAFAFA', border: '1px solid #F3F4F6', borderRadius: 8, padding: '4px 5px', cursor: 'pointer', transition: 'background 0.15s', overflow: 'hidden', minWidth: 0 }}
               onMouseEnter={e => e.currentTarget.style.background = '#F0F4FF'}
               onMouseLeave={e => e.currentTarget.style.background = '#FAFAFA'}>
               <div style={{ fontSize: 12, fontWeight: 600, color: dow === 0 ? '#EF4444' : dow === 6 ? '#3B82F6' : '#374151', marginBottom: 3 }}>{day}</div>
               {dayEvents.slice(0, 3).map(ev => (
-                <div key={ev.id} style={{ fontSize: 10, background: COLORS[ev.color]?.chip || '#FEF08A', color: COLORS[ev.color]?.text || '#92400E', borderRadius: 3, padding: '1px 4px', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 600 }}>
+                <div key={ev.id} style={{ fontSize: 9, background: COLORS[ev.color]?.chip || '#FEF08A', color: COLORS[ev.color]?.text || '#92400E', borderRadius: 3, padding: '1px 3px', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600, maxWidth: '100%', display: 'block' }}>
                   {ev.title}
                 </div>
               ))}
@@ -380,6 +380,15 @@ export default function MonthlyReportDetail() {
       </div>
 
       {/* 1. 학생 현황 */}
+      <Section title="📅 이달 플랜" open={open.calendar} onToggle={() => toggle('calendar')}
+        badge={`${calendarEvents.length}개`}>
+        <CalendarGrid
+          yearMonth={report.year_month}
+          events={calendarEvents}
+          onDayClick={(date, events) => setCalendarModal({ date, events })}
+        />
+      </Section>
+
       <Section title="👥 학생 현황" open={open.students} onToggle={() => toggle('students')}
         badge={`재원 ${report.enrolled_count || 0}명 · 신규 ${report.new_count || 0} · 퇴원 ${report.withdrawn_count || 0}`}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
@@ -539,15 +548,6 @@ export default function MonthlyReportDetail() {
       </Section>
 
       {/* 5. 이달 플랜 */}
-      <Section title="📅 이달 플랜" open={open.calendar} onToggle={() => toggle('calendar')}
-        badge={`${calendarEvents.length}개`}>
-        <CalendarGrid
-          yearMonth={report.year_month}
-          events={calendarEvents}
-          onDayClick={(date, events) => setCalendarModal({ date, events })}
-        />
-      </Section>
-
       {/* 6. 월간 회고 */}
       <Section title="📝 월간 회고" open={open.retro} onToggle={() => toggle('retro')}
         badge={report.reflection_good ? '작성됨' : '미작성'}>
