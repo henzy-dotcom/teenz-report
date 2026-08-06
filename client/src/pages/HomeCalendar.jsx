@@ -103,6 +103,8 @@ export default function HomeCalendar() {
   const [saving, setSaving]               = useState(false);
   const [showYearPicker, setShowYearPicker]   = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [dragEvent, setDragEvent]     = useState(null);
+  const [dragOverDate, setDragOverDate] = useState(null);
 
   const ym = `${year}-${String(month).padStart(2,'0')}`;
 
@@ -171,6 +173,29 @@ export default function HomeCalendar() {
     await fetch(`/api/monthly-reports/${rid}/calendar/${ev.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ done: !ev.done }),
+    });
+    await refreshEvents(rid);
+  };
+
+  const handleDrop = async (targetDate) => {
+    const ev = dragEvent;
+    setDragEvent(null);
+    setDragOverDate(null);
+    if (!ev || targetDate === ev.event_date) return;
+    const rid = monthReportId;
+    if (!rid) return;
+    const origD = new Date(ev.event_date + 'T00:00:00');
+    const targD = new Date(targetDate + 'T00:00:00');
+    const dayShift = Math.round((targD - origD) / 86400000);
+    let newEndDate = '';
+    if (ev.end_date && ev.end_date >= ev.event_date) {
+      const endD = new Date(ev.end_date + 'T00:00:00');
+      endD.setDate(endD.getDate() + dayShift);
+      newEndDate = makeDateStr(endD.getFullYear(), endD.getMonth() + 1, endD.getDate());
+    }
+    await fetch(`/api/monthly-reports/${rid}/calendar/${ev.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: ev.title, color: ev.color, description: ev.description || '', end_date: newEndDate, done: ev.done ? 1 : 0, event_date: targetDate }),
     });
     await refreshEvents(rid);
   };
@@ -281,10 +306,10 @@ export default function HomeCalendar() {
                   const isSelected = cell.date === selectedDate;
                   const isWeekend = cell.dow === 0 || cell.dow === 6;
                   return (
-                    <div key={ci} onClick={() => openDayPanel(cell.date)}
-                      style={{ position: 'relative', background: isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none', cursor: 'pointer', padding: '5px 6px 4px', outline: isSelected ? '2px solid #2B3660' : 'none', outlineOffset: '-2px' }}
-                      onMouseEnter={e => { if (!isSelected && !isToday) e.currentTarget.style.background = '#F8FAFF'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff'; }}>
+                    <div key={ci} onClick={() => { if (!dragEvent) openDayPanel(cell.date); }}
+                      style={{ position: 'relative', background: (dragEvent && dragOverDate === cell.date) ? '#DBEAFE' : isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none', cursor: dragEvent ? 'copy' : 'pointer', padding: '5px 6px 4px', outline: (dragEvent && dragOverDate === cell.date) ? '2px solid #3B82F6' : isSelected ? '2px solid #2B3660' : 'none', outlineOffset: '-2px' }}
+                      onMouseEnter={e => { if (!dragEvent && !isSelected && !isToday) e.currentTarget.style.background = '#F8FAFF'; }}
+                      onMouseLeave={e => { if (!dragEvent) e.currentTarget.style.background = isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff'; }}>
                       <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: isToday ? 800 : 500, background: isToday ? '#2B3660' : 'transparent', color: isToday ? '#fff' : isWeekend ? (cell.dow === 0 ? '#EF4444' : '#3B82F6') : '#374151' }}>{cell.day}</div>
                     </div>
                   );
@@ -300,12 +325,25 @@ export default function HomeCalendar() {
                   const c = COLORS[ev.color] || COLORS.yellow;
                   return (
                     <div key={`${ev.id}-${wi}`}
-                      onClick={e => { e.stopPropagation(); openEditModal(ev.event_date, ev); }}
-                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: ev.done ? '#F3F4F6' : c.bar, borderLeft: isStart ? `3px solid ${ev.done ? '#D1D5DB' : c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: 'pointer', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box', opacity: ev.done ? 0.7 : 1 }}>
+                      draggable={true}
+                      onDragStart={e => { e.stopPropagation(); e.dataTransfer.effectAllowed = 'move'; setDragEvent(ev); }}
+                      onDragEnd={() => { setDragEvent(null); setDragOverDate(null); }}
+                      onClick={e => { e.stopPropagation(); if (!dragEvent) openEditModal(ev.event_date, ev); }}
+                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: ev.done ? '#F3F4F6' : c.bar, borderLeft: isStart ? `3px solid ${ev.done ? '#D1D5DB' : c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: dragEvent?.id === ev.id ? 'grabbing' : 'grab', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box', opacity: dragEvent?.id === ev.id ? 0.4 : ev.done ? 0.7 : 1 }}>
                       {isStart && <span style={{ fontSize: 11, fontWeight: 700, color: ev.done ? '#9CA3AF' : c.text, textDecoration: ev.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>}
                     </div>
                   );
                 })}
+
+                {/* 드래그 드롭존 오버레이 */}
+                {dragEvent && week.map((cell, ci) => !cell ? null : (
+                  <div key={`dz-${ci}`}
+                    style={{ position: 'absolute', left: `${ci * 100/7}%`, width: `${100/7}%`, top: 0, bottom: 0, zIndex: 20 }}
+                    onDragOver={e => { e.preventDefault(); setDragOverDate(cell.date); }}
+                    onDrop={e => { e.preventDefault(); handleDrop(cell.date); }}
+                    onDragLeave={() => setDragOverDate(null)}
+                  />
+                ))}
 
                 {/* +N 더보기 */}
                 {(() => {

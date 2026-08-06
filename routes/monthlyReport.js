@@ -159,13 +159,16 @@ module.exports = (db) => {
     res.json({ id: r.lastInsertRowid });
   });
   router.put('/:id/calendar/:eid', (req, res) => {
-    const { title, color, description, end_date, done } = req.body;
+    const { title, color, description, end_date, done, event_date } = req.body;
     if (done !== undefined && Object.keys(req.body).length === 1) {
       db.prepare('UPDATE mr_calendar_events SET done=? WHERE id=? AND report_id=?')
         .run(done ? 1 : 0, req.params.eid, req.params.id);
     } else {
-      db.prepare('UPDATE mr_calendar_events SET title=?, color=?, description=?, end_date=?, done=? WHERE id=? AND report_id=?')
-        .run(title, color, description||'', end_date||'', done ? 1 : 0, req.params.eid, req.params.id);
+      const sets = ['title=?', 'color=?', 'description=?', 'end_date=?', 'done=?'];
+      const vals = [title, color, description||'', end_date||'', done ? 1 : 0];
+      if (event_date) { sets.push('event_date=?'); vals.push(event_date); }
+      vals.push(req.params.eid, req.params.id);
+      db.prepare(`UPDATE mr_calendar_events SET ${sets.join(', ')} WHERE id=? AND report_id=?`).run(...vals);
     }
     res.json({ ok: true });
   });
