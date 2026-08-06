@@ -330,7 +330,10 @@ export default function HomeCalendar() {
                       onDragEnd={() => { setDragEvent(null); setDragOverDate(null); }}
                       onClick={e => { e.stopPropagation(); if (!dragEvent) openEditModal(ev.event_date, ev); }}
                       style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: ev.done ? '#F3F4F6' : c.bar, borderLeft: isStart ? `3px solid ${ev.done ? '#D1D5DB' : c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: dragEvent?.id === ev.id ? 'grabbing' : 'grab', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box', opacity: dragEvent?.id === ev.id ? 0.4 : ev.done ? 0.7 : 1 }}>
-                      {isStart && <span style={{ fontSize: 11, fontWeight: 700, color: ev.done ? '#9CA3AF' : c.text, textDecoration: ev.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>}
+                      {isStart && <>
+                        <span style={{ fontSize: 10, color: ev.done ? '#C4C9D4' : c.border, marginRight: 3, flexShrink: 0, letterSpacing: -1, lineHeight: 1 }}>⠿</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: ev.done ? '#9CA3AF' : c.text, textDecoration: ev.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>
+                      </>}
                     </div>
                   );
                 })}
