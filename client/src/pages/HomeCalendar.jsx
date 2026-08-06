@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const TODAY = new Date();
@@ -105,6 +105,7 @@ export default function HomeCalendar() {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [dragEvent, setDragEvent]     = useState(null);
   const [dragOverDate, setDragOverDate] = useState(null);
+  const dragEventRef = useRef(null);
 
   const ym = `${year}-${String(month).padStart(2,'0')}`;
 
@@ -178,7 +179,8 @@ export default function HomeCalendar() {
   };
 
   const handleDrop = async (targetDate) => {
-    const ev = dragEvent;
+    const ev = dragEventRef.current;
+    dragEventRef.current = null;
     setDragEvent(null);
     setDragOverDate(null);
     if (!ev || targetDate === ev.event_date) return;
@@ -306,7 +308,11 @@ export default function HomeCalendar() {
                   const isSelected = cell.date === selectedDate;
                   const isWeekend = cell.dow === 0 || cell.dow === 6;
                   return (
-                    <div key={ci} onClick={() => { if (!dragEvent) openDayPanel(cell.date); }}
+                    <div key={ci}
+                      onClick={() => { if (!dragEvent) openDayPanel(cell.date); }}
+                      onDragOver={e => { if (dragEventRef.current) { e.preventDefault(); setDragOverDate(cell.date); } }}
+                      onDragLeave={() => setDragOverDate(null)}
+                      onDrop={e => { e.preventDefault(); handleDrop(cell.date); }}
                       style={{ position: 'relative', background: (dragEvent && dragOverDate === cell.date) ? '#DBEAFE' : isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff', borderRight: ci < 6 ? '1px solid #E5E7EB' : 'none', cursor: dragEvent ? 'copy' : 'pointer', padding: '5px 6px 4px', outline: (dragEvent && dragOverDate === cell.date) ? '2px solid #3B82F6' : isSelected ? '2px solid #2B3660' : 'none', outlineOffset: '-2px' }}
                       onMouseEnter={e => { if (!dragEvent && !isSelected && !isToday) e.currentTarget.style.background = '#F8FAFF'; }}
                       onMouseLeave={e => { if (!dragEvent) e.currentTarget.style.background = isSelected ? '#EEF2FF' : isToday ? '#FFF7ED' : '#fff'; }}>
@@ -326,10 +332,10 @@ export default function HomeCalendar() {
                   return (
                     <div key={`${ev.id}-${wi}`}
                       draggable={true}
-                      onDragStart={e => { e.stopPropagation(); e.dataTransfer.effectAllowed = 'move'; setDragEvent(ev); }}
-                      onDragEnd={() => { setDragEvent(null); setDragOverDate(null); }}
+                      onDragStart={e => { e.stopPropagation(); e.dataTransfer.effectAllowed = 'move'; dragEventRef.current = ev; setDragEvent(ev); }}
+                      onDragEnd={() => { dragEventRef.current = null; setDragEvent(null); setDragOverDate(null); }}
                       onClick={e => { e.stopPropagation(); if (!dragEvent) openEditModal(ev.event_date, ev); }}
-                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: ev.done ? '#F3F4F6' : c.bar, borderLeft: isStart ? `3px solid ${ev.done ? '#D1D5DB' : c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: dragEvent?.id === ev.id ? 'grabbing' : 'grab', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box', opacity: dragEvent?.id === ev.id ? 0.4 : ev.done ? 0.7 : 1 }}>
+                      style={{ position: 'absolute', left: `calc(${left}% + ${isStart ? 3 : 0}px)`, width: `calc(${width}% - ${isStart ? 3 : 0}px - ${isEnd ? 3 : 0}px)`, top, height: LANE_H - 3, background: ev.done ? '#F3F4F6' : c.bar, borderLeft: isStart ? `3px solid ${ev.done ? '#D1D5DB' : c.border}` : 'none', borderRadius: isStart && isEnd ? 6 : isStart ? '6px 0 0 6px' : isEnd ? '0 6px 6px 0' : 0, display: 'flex', alignItems: 'center', padding: '0 5px', cursor: dragEvent?.id === ev.id ? 'grabbing' : 'grab', zIndex: 10, overflow: 'hidden', boxSizing: 'border-box', opacity: dragEvent?.id === ev.id ? 0.4 : ev.done ? 0.7 : 1, pointerEvents: dragEvent && dragEvent.id !== ev.id ? 'none' : 'auto' }}>
                       {isStart && <>
                         <span style={{ fontSize: 10, color: ev.done ? '#C4C9D4' : c.border, marginRight: 3, flexShrink: 0, letterSpacing: -1, lineHeight: 1 }}>⠿</span>
                         <span style={{ fontSize: 11, fontWeight: 700, color: ev.done ? '#9CA3AF' : c.text, textDecoration: ev.done ? 'line-through' : 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.title}</span>
@@ -337,16 +343,6 @@ export default function HomeCalendar() {
                     </div>
                   );
                 })}
-
-                {/* 드래그 드롭존 오버레이 */}
-                {dragEvent && week.map((cell, ci) => !cell ? null : (
-                  <div key={`dz-${ci}`}
-                    style={{ position: 'absolute', left: `${ci * 100/7}%`, width: `${100/7}%`, top: 0, bottom: 0, zIndex: 20 }}
-                    onDragOver={e => { e.preventDefault(); setDragOverDate(cell.date); }}
-                    onDrop={e => { e.preventDefault(); handleDrop(cell.date); }}
-                    onDragLeave={() => setDragOverDate(null)}
-                  />
-                ))}
 
                 {/* +N 더보기 */}
                 {(() => {
