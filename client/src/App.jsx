@@ -14,7 +14,6 @@ import KakaoTemplates from './pages/KakaoTemplates.jsx';
 import Attendance from './pages/Attendance.jsx';
 import MonthlyReportList from './pages/MonthlyReportList.jsx';
 import MonthlyReportDetail from './pages/MonthlyReportDetail.jsx';
-import MonthlyReportStats from './pages/MonthlyReportStats.jsx';
 import HomeCalendar from './pages/HomeCalendar.jsx';
 
 export const ToastContext = React.createContext(null);
@@ -51,7 +50,7 @@ function AppInner() {
           <Route path="/teacher-comments"             element={<Navigate to="/kakao-templates" replace />} />
           <Route path="/attendance"                   element={<Attendance />} />
           <Route path="/monthly-reports"             element={<MonthlyReportList />} />
-          <Route path="/monthly-reports/stats"       element={<MonthlyReportStats />} />
+          <Route path="/monthly-reports/stats"       element={<Navigate to="/monthly-reports" replace />} />
           <Route path="/monthly-reports/:id"         element={<MonthlyReportDetail />} />
           <Route path="*"                             element={<Navigate to="/" replace />} />
         </Routes>
