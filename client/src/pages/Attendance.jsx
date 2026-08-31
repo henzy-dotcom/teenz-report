@@ -1,29 +1,57 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { ToastContext } from '../App.jsx';
 
-function Counter({ value, onChange, color, bg }) {
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function fmtDate(dateStr) {
+  const [, m, d] = dateStr.split('-');
+  const wd = '일월화수목금토'[new Date(dateStr).getDay()];
+  return `${parseInt(m)}/${parseInt(d)}(${wd})`;
+}
+
+function DateChips({ records, color, bg, onRemove }) {
+  if (records.length === 0) return null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-      <button
-        onClick={() => onChange(Math.max(0, value - 1))}
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6, justifyContent: 'center' }}>
+      {records.map(r => (
+        <span
+          key={r.id}
+          onClick={() => onRemove(r.id)}
+          title="탭하면 삭제"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            padding: '2px 6px', borderRadius: 8, background: bg, color,
+            fontSize: 10, fontWeight: 700, cursor: 'pointer',
+          }}
+        >{fmtDate(r.date)} ✕</span>
+      ))}
+    </div>
+  );
+}
+
+function AddDateRow({ color, onAdd }) {
+  const [date, setDate] = useState(todayStr());
+  return (
+    <div style={{ display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
+      <input
+        type="date"
+        value={date}
+        onChange={e => setDate(e.target.value)}
         style={{
-          width: 30, height: 30, borderRadius: 8, border: 'none',
-          background: '#F3F4F6', cursor: 'pointer', fontSize: 18, fontWeight: 700,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
+          border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 10,
+          padding: '2px 4px', color: '#374151', width: 108,
         }}
-      >−</button>
-      <span style={{
-        width: 28, textAlign: 'center', fontWeight: 800, fontSize: 18, color,
-        background: bg, borderRadius: 8, padding: '2px 0',
-      }}>{value}</span>
+      />
       <button
-        onClick={() => onChange(value + 1)}
+        onClick={() => onAdd(date)}
         style={{
-          width: 30, height: 30, borderRadius: 8, border: 'none',
-          background: '#F3F4F6', cursor: 'pointer', fontSize: 18, fontWeight: 700,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280',
+          border: 'none', borderRadius: 6, background: color, color: '#fff',
+          fontSize: 11, fontWeight: 700, padding: '4px 8px', cursor: 'pointer',
         }}
-      >+</button>
+      >+ 추가</button>
     </div>
   );
 }
@@ -52,18 +80,24 @@ export default function Attendance() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function update(studentId, absent, makeup) {
-    setRows(prev => prev.map(r => r.id === studentId ? { ...r, absent, makeup } : r));
+  async function addRecord(studentId, type, date) {
     await fetch(`/api/attendance/${yearMonth}/${studentId}`, {
-      method: 'PUT',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ absent, makeup }),
+      body: JSON.stringify({ type, date }),
     });
+    load();
+    showToast?.(type === 'absent' ? '결석 기록 추가됨' : '보충 기록 추가됨');
   }
 
-  const totalAbsent = rows.reduce((s, r) => s + r.absent, 0);
-  const totalMakeup = rows.reduce((s, r) => s + r.makeup, 0);
-  const totalUnmade = rows.reduce((s, r) => s + Math.max(0, r.absent - r.makeup), 0);
+  async function removeRecord(id) {
+    await fetch(`/api/attendance/record/${id}`, { method: 'DELETE' });
+    load();
+  }
+
+  const totalAbsent = rows.reduce((s, r) => s + r.absent + (r.legacyAbsent || 0), 0);
+  const totalMakeup = rows.reduce((s, r) => s + r.makeup + (r.legacyMakeup || 0), 0);
+  const totalUnmade = rows.reduce((s, r) => s + Math.max(0, (r.absent + (r.legacyAbsent || 0)) - (r.makeup + (r.legacyMakeup || 0))), 0);
 
   const grouped = rows.reduce((acc, r) => {
     const key = r.class_subject || '기타';
@@ -77,7 +111,7 @@ export default function Attendance() {
       <div className="page-header">
         <div>
           <h1 className="page-title">출결 관리</h1>
-          <p className="page-subtitle">결석 및 보충 현황</p>
+          <p className="page-subtitle">결석 및 보충 현황 (날짜별 기록)</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <button onClick={() => moveMonth(-1)} style={{ width: 32, height: 32, borderRadius: 8, border: '1.5px solid #E5E7EB', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#2B3660' }}>‹</button>
@@ -111,9 +145,13 @@ export default function Attendance() {
             fontSize: 12, fontWeight: 700,
           }}>{cls}</div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
             {students.map(s => {
-              const unmade = Math.max(0, s.absent - s.makeup);
+              const absentTotal = s.absent + (s.legacyAbsent || 0);
+              const makeupTotal = s.makeup + (s.legacyMakeup || 0);
+              const unmade = Math.max(0, absentTotal - makeupTotal);
+              const absentRecords = s.records.filter(r => r.type === 'absent');
+              const makeupRecords = s.records.filter(r => r.type === 'makeup');
               return (
                 <div key={s.id} style={{
                   background: '#fff',
@@ -129,16 +167,29 @@ export default function Attendance() {
                   </div>
 
                   {/* 결석 */}
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, color: '#DC2626', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>결석</div>
-                    <Counter value={s.absent} color="#DC2626" bg="#FEF2F2" onChange={v => update(s.id, v, s.makeup)} />
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: '#DC2626', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>
+                      결석 {absentTotal > 0 && `(${absentTotal})`}
+                    </div>
+                    <AddDateRow color="#DC2626" onAdd={date => addRecord(s.id, 'absent', date)} />
+                    <DateChips records={absentRecords} color="#DC2626" bg="#FEF2F2" onRemove={removeRecord} />
                   </div>
 
                   {/* 보충 */}
                   <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, color: '#059669', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>보충</div>
-                    <Counter value={s.makeup} color="#059669" bg="#F0FDF4" onChange={v => update(s.id, s.absent, v)} />
+                    <div style={{ fontSize: 10, color: '#059669', fontWeight: 700, textAlign: 'center', marginBottom: 4 }}>
+                      보충 {makeupTotal > 0 && `(${makeupTotal})`}
+                    </div>
+                    <AddDateRow color="#059669" onAdd={date => addRecord(s.id, 'makeup', date)} />
+                    <DateChips records={makeupRecords} color="#059669" bg="#F0FDF4" onRemove={removeRecord} />
                   </div>
+
+                  {/* 이전 기록(날짜 미상) 안내 */}
+                  {(s.legacyAbsent > 0 || s.legacyMakeup > 0) && (
+                    <div style={{ textAlign: 'center', fontSize: 9, color: '#9CA3AF', marginBottom: 6 }}>
+                      이전 기록(날짜 미상) 결석 {s.legacyAbsent} · 보충 {s.legacyMakeup}
+                    </div>
+                  )}
 
                   {/* 미보충 뱃지 */}
                   <div style={{ textAlign: 'center' }}>

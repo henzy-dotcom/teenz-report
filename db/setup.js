@@ -205,6 +205,20 @@ db.exec(`
   );
 `);
 
+// ─── 출결 날짜 기록 (결석/보충 실제 날짜) ───
+db.exec(`
+  CREATE TABLE IF NOT EXISTS attendance_dates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('absent','makeup')),
+    date TEXT NOT NULL,
+    memo TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_attendance_dates_student ON attendance_dates(student_id, date);
+`);
+
 // ─── 신규생 상담 시스템 테이블 ───
 db.exec(`
   CREATE TABLE IF NOT EXISTS consultations (
