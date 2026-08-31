@@ -11,7 +11,6 @@ import ConsultAdmin from './pages/ConsultAdmin.jsx';
 import ConsultDetail from './pages/ConsultDetail.jsx';
 import ConsultAnswers from './pages/ConsultAnswers.jsx';
 import KakaoTemplates from './pages/KakaoTemplates.jsx';
-import TeacherComments from './pages/TeacherComments.jsx';
 import Attendance from './pages/Attendance.jsx';
 import MonthlyReportList from './pages/MonthlyReportList.jsx';
 import MonthlyReportDetail from './pages/MonthlyReportDetail.jsx';
@@ -49,7 +48,7 @@ function AppInner() {
           <Route path="/admin/consult/answers"        element={<ConsultAnswers />} />
           <Route path="/admin/consult/:id"            element={<ConsultDetail />} />
           <Route path="/kakao-templates"              element={<KakaoTemplates />} />
-          <Route path="/teacher-comments"             element={<TeacherComments />} />
+          <Route path="/teacher-comments"             element={<Navigate to="/kakao-templates" replace />} />
           <Route path="/attendance"                   element={<Attendance />} />
           <Route path="/monthly-reports"             element={<MonthlyReportList />} />
           <Route path="/monthly-reports/stats"       element={<MonthlyReportStats />} />
