@@ -428,6 +428,21 @@ if (greetingRow) {
   }
 }
 
+// ─── 메모 (포스트잇) ───
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sticky_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    content TEXT DEFAULT '',
+    color TEXT DEFAULT 'yellow',
+    pos_x INTEGER DEFAULT 40,
+    pos_y INTEGER DEFAULT 40,
+    rotation INTEGER DEFAULT 0,
+    z_index INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 console.log('✅ DB 스키마 준비 완료:', DB_PATH);
 
 module.exports = { db, makeShareCode };

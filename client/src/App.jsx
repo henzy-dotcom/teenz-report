@@ -15,6 +15,7 @@ import Attendance from './pages/Attendance.jsx';
 import MonthlyReportList from './pages/MonthlyReportList.jsx';
 import MonthlyReportDetail from './pages/MonthlyReportDetail.jsx';
 import HomeCalendar from './pages/HomeCalendar.jsx';
+import StickyNotes from './pages/StickyNotes.jsx';
 
 export const ToastContext = React.createContext(null);
 
@@ -52,6 +53,7 @@ function AppInner() {
           <Route path="/monthly-reports"             element={<MonthlyReportList />} />
           <Route path="/monthly-reports/stats"       element={<Navigate to="/monthly-reports" replace />} />
           <Route path="/monthly-reports/:id"         element={<MonthlyReportDetail />} />
+          <Route path="/memo"                         element={<StickyNotes />} />
           <Route path="*"                             element={<Navigate to="/" replace />} />
         </Routes>
         {toast && (

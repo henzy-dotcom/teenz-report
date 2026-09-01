@@ -14,6 +14,7 @@ export default function NavBar() {
     { to: '/monthly-reports', label: '운영 일지', end: true  },
     { to: '/admin/consult', label: '신규생 상담', end: false },
     { to: '/kakao-templates', label: '카톡 템플릿', end: false },
+    { to: '/memo',             label: '📝 메모',      end: false },
   ];
 
   const close = () => setMenuOpen(false);
