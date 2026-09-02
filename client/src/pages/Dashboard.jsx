@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ToastContext } from '../App.jsx';
 
 const PUBLIC_BASE = import.meta.env.VITE_PUBLIC_BASE_URL || window.location.origin;
@@ -32,13 +32,18 @@ export default function Dashboard() {
   const [showAllMsg, setShowAllMsg] = useState(false);
   const showToast = useContext(ToastContext);
   const navigate  = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     fetch('/api/periods').then(r => r.json()).then(data => {
       setPeriods(data);
-      if (data.length > 0) setSelected(data[0]);
+      const periodParam = searchParams.get('period');
+      const matched = periodParam ? data.find(p => String(p.id) === periodParam) : null;
+      if (matched) setSelected(matched);
+      else if (data.length > 0) setSelected(data[0]);
       setLoading(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

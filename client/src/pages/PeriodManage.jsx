@@ -98,7 +98,7 @@ export default function PeriodManage() {
 
             {/* 오른쪽: 버튼 */}
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <button className="btn btn-primary btn-sm" onClick={() => navigate('/')}>
+              <button className="btn btn-primary btn-sm" onClick={() => navigate(`/dashboard?period=${p.id}`)}>
                 대시보드 보기
               </button>
               <button className="btn btn-secondary btn-sm" onClick={() => handleDelete(p.id)}>

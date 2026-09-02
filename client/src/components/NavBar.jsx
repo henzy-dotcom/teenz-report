@@ -7,7 +7,6 @@ export default function NavBar() {
 
   const links = [
     { to: '/',              label: '📅 이달 플랜', end: true  },
-    { to: '/dashboard',    label: '대시보드',    end: true  },
     { to: '/periods',       label: '리포트 회차', end: false },
     { to: '/students',      label: '학생 관리',   end: false },
     { to: '/attendance',      label: '출결 관리',   end: false },
