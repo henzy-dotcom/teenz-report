@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
 
@@ -119,14 +119,35 @@ function PDFPanel({ pdf }) {
 }
 
 /* ─── 사진 슬라이더 ─── */
-function PhotoLightbox({ src, alt, onClose }) {
+function PhotoLightbox({ photos, idx, setIdx, label, onClose }) {
+  const touchStartX = useRef(null);
+  const current = photos[idx];
+  const src = `/uploads/photos/${current.filename}`;
+  const hasMultiple = photos.length > 1;
+
+  const goPrev = (e) => { e.stopPropagation(); setIdx(i => (i - 1 + photos.length) % photos.length); };
+  const goNext = (e) => { e.stopPropagation(); setIdx(i => (i + 1) % photos.length); };
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e) => {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      if (dx > 0) goPrev(e); else goNext(e);
+    }
+    touchStartX.current = null;
+  };
+
   return (
     <div
       onClick={onClose}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999,
         background: 'rgba(0,0,0,0.92)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
+        touchAction: 'pan-y',
       }}
     >
       <button
@@ -139,8 +160,39 @@ function PhotoLightbox({ src, alt, onClose }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >✕</button>
+      {hasMultiple && (
+        <>
+          <button
+            onClick={goPrev}
+            style={{
+              position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.15)', border: 'none',
+              color: '#fff', fontSize: 22, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >‹</button>
+          <button
+            onClick={goNext}
+            style={{
+              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.15)', border: 'none',
+              color: '#fff', fontSize: 22, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >›</button>
+          <div style={{
+            position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.5)', color: 'rgba(255,255,255,0.85)',
+            borderRadius: 20, padding: '5px 14px', fontSize: 13,
+          }}>
+            {idx + 1} / {photos.length}
+          </div>
+        </>
+      )}
       <img
-        src={src} alt={alt}
+        src={src} alt={label}
         onClick={e => e.stopPropagation()}
         style={{ maxWidth: '95vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }}
       />
@@ -156,7 +208,7 @@ function PhotoSlider({ photos, label, emoji }) {
   const src = `/uploads/photos/${current.filename}`;
   return (
     <>
-      {lightbox && <PhotoLightbox src={src} alt={label} onClose={() => setLightbox(false)} />}
+      {lightbox && <PhotoLightbox photos={photos} idx={idx} setIdx={setIdx} label={label} onClose={() => setLightbox(false)} />}
       <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(43,54,96,0.1)', marginBottom: 12 }}>
         <div style={{ padding: '9px 14px', background: '#2B3660', fontSize: 13, color: 'white', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>{emoji} {label}</span>
