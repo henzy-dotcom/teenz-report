@@ -5,6 +5,7 @@ import { ToastContext } from '../App.jsx';
 export default function PeriodManage() {
   const [periods, setPeriods]   = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId]     = useState(null); // null이면 생성 모드, 값이 있으면 수정 모드
   const [form, setForm]         = useState({ title: '', start_date: '', end_date: '' });
   const [loading, setLoading]   = useState(false);
   const showToast = useContext(ToastContext);
@@ -16,6 +17,18 @@ export default function PeriodManage() {
   }
   useEffect(() => { load(); }, []);
 
+  function openCreateModal() {
+    setEditId(null);
+    setForm({ title: '', start_date: '', end_date: '' });
+    setShowModal(true);
+  }
+
+  function openEditModal(p) {
+    setEditId(p.id);
+    setForm({ title: p.title, start_date: p.start_date, end_date: p.end_date });
+    setShowModal(true);
+  }
+
   async function handleCreate() {
     if (!form.start_date || !form.end_date) { showToast('기간을 입력해주세요.', 'error'); return; }
     setLoading(true);
@@ -24,6 +37,20 @@ export default function PeriodManage() {
     if (!res.ok) { showToast(data.error || '생성 실패', 'error'); setLoading(false); return; }
     showToast('회차를 생성했습니다. 재원생 리포트가 자동 생성됩니다.');
     setShowModal(false);
+    setForm({ title: '', start_date: '', end_date: '' });
+    setLoading(false);
+    load();
+  }
+
+  async function handleUpdate() {
+    if (!form.start_date || !form.end_date) { showToast('기간을 입력해주세요.', 'error'); return; }
+    setLoading(true);
+    const res  = await fetch(`/api/periods/${editId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || '수정 실패', 'error'); setLoading(false); return; }
+    showToast('회차 정보를 수정했습니다.');
+    setShowModal(false);
+    setEditId(null);
     setForm({ title: '', start_date: '', end_date: '' });
     setLoading(false);
     load();
@@ -43,7 +70,7 @@ export default function PeriodManage() {
           <h1 className="page-title">리포트 회차 관리</h1>
           <p className="page-subtitle">2주 단위 리포트 기간을 관리합니다</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ 새 회차 생성</button>
+        <button className="btn btn-primary" onClick={openCreateModal}>+ 새 회차 생성</button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -101,6 +128,9 @@ export default function PeriodManage() {
               <button className="btn btn-primary btn-sm" onClick={() => navigate(`/dashboard?period=${p.id}`)}>
                 대시보드 보기
               </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => openEditModal(p)}>
+                수정
+              </button>
               <button className="btn btn-secondary btn-sm" onClick={() => handleDelete(p.id)}>
                 삭제
               </button>
@@ -117,14 +147,14 @@ export default function PeriodManage() {
         )}
       </div>
 
-      {/* 모달 */}
+      {/* 모달 (생성/수정 공용) */}
       {showModal && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal">
-            <h2 className="modal-title">새 회차 생성</h2>
+            <h2 className="modal-title">{editId ? '회차 수정' : '새 회차 생성'}</h2>
 
             <div className="form-group">
-              <label className="label">회차 제목 (비워두면 자동 생성)</label>
+              <label className="label">회차 제목 {editId ? '' : '(비워두면 자동 생성)'}</label>
               <input className="input" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="예: 6월 2주차 리포트" />
             </div>
             <div className="form-row">
@@ -138,14 +168,20 @@ export default function PeriodManage() {
               </div>
             </div>
 
-            <div style={{ padding: '10px 12px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, fontSize: 12, color: '#1D4ED8', marginBottom: 4 }}>
-              💡 회차 생성 시 현재 재원 중인 학생들의 빈 리포트가 자동으로 생성됩니다.
-            </div>
+            {editId ? (
+              <div style={{ padding: '10px 12px', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 8, fontSize: 12, color: '#92400E', marginBottom: 4 }}>
+                ⚠️ 날짜를 변경해도 이미 생성된 리포트/학부모 링크는 그대로 유지됩니다.
+              </div>
+            ) : (
+              <div style={{ padding: '10px 12px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, fontSize: 12, color: '#1D4ED8', marginBottom: 4 }}>
+                💡 회차 생성 시 현재 재원 중인 학생들의 빈 리포트가 자동으로 생성됩니다.
+              </div>
+            )}
 
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>취소</button>
-              <button className="btn btn-primary" onClick={handleCreate} disabled={loading}>
-                {loading ? <span className="spinner" /> : '생성'}
+              <button className="btn btn-secondary" onClick={() => { setShowModal(false); setEditId(null); }}>취소</button>
+              <button className="btn btn-primary" onClick={editId ? handleUpdate : handleCreate} disabled={loading}>
+                {loading ? <span className="spinner" /> : (editId ? '저장' : '생성')}
               </button>
             </div>
           </div>

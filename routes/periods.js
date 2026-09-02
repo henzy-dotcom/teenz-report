@@ -58,8 +58,9 @@ module.exports = (db) => {
     res.json(db.prepare('SELECT * FROM periods WHERE id = ?').get(req.params.id));
   });
 
-  // 회차 삭제
+  // 회차 삭제 (연결된 리포트도 함께 삭제 — FK 제약 때문에 리포트 먼저 삭제)
   router.delete('/:id', (req, res) => {
+    db.prepare('DELETE FROM reports WHERE period_id = ?').run(req.params.id);
     db.prepare('DELETE FROM periods WHERE id = ?').run(req.params.id);
     res.json({ ok: true });
   });
