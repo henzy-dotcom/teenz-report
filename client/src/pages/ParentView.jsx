@@ -229,13 +229,13 @@ function PhotoSlider({ photos, label, emoji }) {
             onClick={() => setLightbox(true)}
             style={{
               position: 'absolute', bottom: 10, right: 10,
-              width: 44, height: 44, borderRadius: 10,
+              padding: '8px 14px', borderRadius: 20,
               background: 'rgba(0,0,0,0.6)', border: 'none',
-              color: '#fff', fontSize: 26, cursor: 'pointer',
+              color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              letterSpacing: '0.02em',
             }}
-            title="크게 보기"
-          >⤢</button>
+          >전체보기</button>
         </div>
       </div>
     </>
